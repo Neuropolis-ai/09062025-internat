@@ -1,8 +1,12 @@
-import 'react-native-gesture-handler'
-import React from 'react'
-import { AppNavigator } from '../src/navigation/AppNavigator'
-import '../src/styles/unistyles' // Инициализация Unistyles
+import React from 'react';
+import { Stack } from 'expo-router';
 
 export default function RootLayout() {
-  return <AppNavigator />
+  return (
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
+      <Stack.Screen name="bank" options={{ headerShown: false }} />
+    </Stack>
+  );
 } 
