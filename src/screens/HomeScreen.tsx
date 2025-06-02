@@ -12,6 +12,11 @@ type RootStackParamList = {
   Rules: undefined
   Shop: undefined
   Auction: undefined
+  Bank: undefined
+  Grades: undefined
+  Republic: undefined
+  Contracts: undefined
+  Terms: undefined
 }
 
 type HomeNavigationProp = NavigationProp<RootStackParamList>
@@ -32,21 +37,34 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Приветствие */}
-      <View style={styles.greetingSection}>
-        <Text style={styles.greeting}>
-          {getCurrentGreeting()}, Александр! 👋
-        </Text>
-        <Text style={styles.subtitle}>
-          Сегодня отличный день для новых достижений
-        </Text>
+      {/* Шапка с названием лицея */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Лицей-интернат "Подмосковный"</Text>
+        <TouchableOpacity 
+          style={styles.notificationButton}
+          onPress={() => navigation.navigate('Notifications')}
+        >
+          <Text style={styles.notificationIcon}>🔔</Text>
+          <View style={styles.notificationBadge}>
+            <Text style={styles.badgeText}>3</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Информационный блок ученика */}
+      <View style={styles.studentBlock}>
+        <View style={styles.avatarContainer}>
+          <Text style={styles.avatar}>👤</Text>
+        </View>
+        <Text style={styles.studentName}>Александр Иванов</Text>
+        <Text style={styles.studentInfo}>8Б, коттедж №3</Text>
       </View>
 
       {/* Быстрая статистика */}
       <View style={styles.statsSection}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>2,450</Text>
-          <Text style={styles.statLabel}>Лицейских баллов</Text>
+          <Text style={styles.statLabel}>L-Coin</Text>
         </View>
         
         <View style={styles.statCard}>
@@ -60,91 +78,76 @@ export const HomeScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Модули приложения */}
+      {/* Основные разделы согласно ТЗ */}
       <View style={styles.modulesSection}>
-        <Text style={styles.sectionTitle}>🚀 Модули лицея</Text>
+        <Text style={styles.sectionTitle}>📚 Основные разделы</Text>
         
-        <View style={styles.moduleGrid}>
+        <View style={styles.moduleList}>
           {/* Лицейский банк */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => navigation.navigate('Shop')}
+            onPress={() => navigation.navigate('Bank')}
           >
             <Text style={styles.moduleIcon}>💳</Text>
-            <Text style={styles.moduleTitle}>Лицейский банк</Text>
-            <Text style={styles.moduleDescription}>Управление балансом и переводы</Text>
+            <View style={styles.moduleContent}>
+              <Text style={styles.moduleTitle}>Лицейский банк</Text>
+              <Text style={styles.moduleDescription}>Управление виртуальным кошельком</Text>
+            </View>
+            <Text style={styles.moduleArrow}>›</Text>
           </TouchableOpacity>
 
           {/* Успеваемость */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => navigation.navigate('FAQ')}
+            onPress={() => navigation.navigate('Grades')}
           >
             <Text style={styles.moduleIcon}>📊</Text>
-            <Text style={styles.moduleTitle}>Успеваемость</Text>
-            <Text style={styles.moduleDescription}>Оценки и достижения</Text>
+            <View style={styles.moduleContent}>
+              <Text style={styles.moduleTitle}>Успеваемость</Text>
+              <Text style={styles.moduleDescription}>Рейтинг и достижения</Text>
+            </View>
+            <Text style={styles.moduleArrow}>›</Text>
+          </TouchableOpacity>
+
+          {/* Госзаказы */}
+          <TouchableOpacity 
+            style={styles.moduleCard}
+            onPress={() => navigation.navigate('FAQ')}
+          >
+            <Text style={styles.moduleIcon}>📋</Text>
+            <View style={styles.moduleContent}>
+              <Text style={styles.moduleTitle}>Госзаказы</Text>
+              <Text style={styles.moduleDescription}>Доступные контракты и заявки</Text>
+            </View>
+            <Text style={styles.moduleArrow}>›</Text>
           </TouchableOpacity>
 
           {/* Республика */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => navigation.navigate('Rules')}
+            onPress={() => navigation.navigate('Republic')}
           >
             <Text style={styles.moduleIcon}>🏛️</Text>
-            <Text style={styles.moduleTitle}>Республика</Text>
-            <Text style={styles.moduleDescription}>Самоуправление и активности</Text>
+            <View style={styles.moduleContent}>
+              <Text style={styles.moduleTitle}>Республика</Text>
+              <Text style={styles.moduleDescription}>Социальная и административная активность</Text>
+            </View>
+            <Text style={styles.moduleArrow}>›</Text>
           </TouchableOpacity>
 
-          {/* Уведомления */}
+          {/* Условия и соглашения */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => navigation.navigate('Rules')}
           >
-            <Text style={styles.moduleIcon}>🔔</Text>
-            <Text style={styles.moduleTitle}>Уведомления</Text>
-            <Text style={styles.moduleDescription}>Важные сообщения</Text>
-          </TouchableOpacity>
-
-          {/* L-shop */}
-          <TouchableOpacity 
-            style={styles.moduleCard}
-            onPress={() => navigation.navigate('Shop')}
-          >
-            <Text style={styles.moduleIcon}>🛒</Text>
-            <Text style={styles.moduleTitle}>L-shop</Text>
-            <Text style={styles.moduleDescription}>Магазин лицея</Text>
-          </TouchableOpacity>
-
-          {/* Аукцион */}
-          <TouchableOpacity 
-            style={styles.moduleCard}
-            onPress={() => navigation.navigate('Auction')}
-          >
-            <Text style={styles.moduleIcon}>🔨</Text>
-            <Text style={styles.moduleTitle}>Аукцион</Text>
-            <Text style={styles.moduleDescription}>Торги и лоты</Text>
+            <Text style={styles.moduleIcon}>📄</Text>
+            <View style={styles.moduleContent}>
+              <Text style={styles.moduleTitle}>Условия и соглашения</Text>
+              <Text style={styles.moduleDescription}>Документы и регламенты</Text>
+            </View>
+            <Text style={styles.moduleArrow}>›</Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Нейрочат */}
-      <View style={styles.chatCard}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.chatIcon}>🤖</Text>
-          <View>
-            <Text style={styles.chatTitle}>Нейрочат ассистент</Text>
-            <Text style={styles.chatSubtitle}>Умный помощник лицеиста</Text>
-          </View>
-        </View>
-        <Text style={styles.chatDescription}>
-          Есть вопросы? Спросите у ИИ-ассистента о расписании, правилах или любой другой информации.
-        </Text>
-        <TouchableOpacity 
-          style={styles.chatButton}
-          onPress={() => navigation.navigate('Chat')}
-        >
-          <Text style={styles.chatButtonText}>Начать чат</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   )
@@ -156,24 +159,80 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.ultraLight,
   },
   content: {
-    padding: theme.spacing.md,
+    paddingBottom: theme.spacing.xl,
   },
-  greetingSection: {
-    marginBottom: theme.spacing.lg,
+  header: {
+    backgroundColor: theme.colors.primary,
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: theme.spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  greeting: {
-    fontSize: theme.typography.sizes.h1,
+  headerTitle: {
+    fontSize: theme.typography.sizes.h2,
+    fontWeight: 'bold',
+    color: theme.colors.white,
+    flex: 1,
+    textAlign: 'center',
+  },
+  notificationButton: {
+    position: 'relative',
+    padding: theme.spacing.sm,
+  },
+  notificationIcon: {
+    fontSize: 24,
+    color: theme.colors.white,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: theme.colors.white,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  studentBlock: {
+    alignItems: 'center',
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
+  },
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: theme.colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.small,
+  },
+  avatar: {
+    fontSize: 40,
+  },
+  studentName: {
+    fontSize: theme.typography.sizes.h2,
     fontWeight: 'bold',
     color: theme.colors.primary,
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.xs,
   },
-  subtitle: {
+  studentInfo: {
     fontSize: theme.typography.sizes.body,
     color: theme.colors.gray,
   },
   statsSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginHorizontal: theme.spacing.md,
     marginBottom: theme.spacing.lg,
   },
   statCard: {
@@ -197,83 +256,45 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modulesSection: {
-    marginBottom: theme.spacing.lg,
+    marginHorizontal: theme.spacing.md,
   },
   sectionTitle: {
-    fontSize: theme.typography.sizes.h3,
+    fontSize: theme.typography.sizes.h2,
     fontWeight: 'bold',
-    color: theme.colors.charcoal,
+    color: theme.colors.primary,
     marginBottom: theme.spacing.md,
   },
-  moduleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  moduleList: {
+    gap: theme.spacing.sm,
   },
   moduleCard: {
-    width: '48%',
     backgroundColor: theme.colors.white,
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    flexDirection: 'row',
     alignItems: 'center',
     ...theme.shadows.small,
   },
   moduleIcon: {
     fontSize: 32,
-    marginBottom: theme.spacing.sm,
+    marginRight: theme.spacing.md,
+  },
+  moduleContent: {
+    flex: 1,
   },
   moduleTitle: {
-    fontSize: theme.typography.sizes.bodySmall,
-    fontWeight: '500',
+    fontSize: theme.typography.sizes.h3,
+    fontWeight: 'bold',
     color: theme.colors.primary,
     marginBottom: theme.spacing.xs,
-    textAlign: 'center',
   },
   moduleDescription: {
     fontSize: theme.typography.sizes.caption,
     color: theme.colors.gray,
-    textAlign: 'center',
   },
-  chatCard: {
-    backgroundColor: theme.colors.white,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.divider,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  chatIcon: {
-    fontSize: 32,
-    marginRight: theme.spacing.sm,
-  },
-  chatTitle: {
-    fontSize: theme.typography.sizes.bodySmall,
-    fontWeight: '500',
-    color: theme.colors.primary,
-  },
-  chatSubtitle: {
-    fontSize: theme.typography.sizes.caption,
+  moduleArrow: {
+    fontSize: 24,
     color: theme.colors.gray,
-  },
-  chatDescription: {
-    fontSize: theme.typography.sizes.body,
-    color: theme.colors.gray,
-    marginBottom: theme.spacing.md,
-  },
-  chatButton: {
-    backgroundColor: theme.colors.lightGray,
-    padding: theme.spacing.sm,
-    borderRadius: theme.borderRadius.sm,
-    alignItems: 'center',
-  },
-  chatButtonText: {
-    fontSize: theme.typography.sizes.bodySmall,
-    color: theme.colors.primary,
-    fontWeight: '500',
+    marginLeft: theme.spacing.sm,
   },
 }) 

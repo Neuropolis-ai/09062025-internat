@@ -22,23 +22,48 @@ import { AuctionScreen } from '../screens/AuctionScreen'
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
 
-// Стек для домашнего экрана с дополнительными экранами
+// Главный стек с домашним экраном и всеми дополнительными экранами
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="HomeMain" component={HomeScreen} />
+    {/* Основные экраны доступные через главную страницу */}
+    <Stack.Screen name="Bank" component={BankScreen} />
+    <Stack.Screen name="Grades" component={GradesScreen} />
+    <Stack.Screen name="Republic" component={RepublicScreen} />
+    {/* Дополнительные экраны */}
     <Stack.Screen name="Chat" component={ChatScreen} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} />
     <Stack.Screen name="FAQ" component={FAQScreen} />
     <Stack.Screen name="Rules" component={RulesScreen} />
-    <Stack.Screen name="Shop" component={ShopScreen} />
-    <Stack.Screen name="Auction" component={AuctionScreen} />
+    <Stack.Screen name="Profile" component={AuthScreen} />
+  </Stack.Navigator>
+)
+
+// Стек для магазина
+const ShopStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="ShopMain" component={ShopScreen} />
+  </Stack.Navigator>
+)
+
+// Стек для аукциона
+const AuctionStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="AuctionMain" component={AuctionScreen} />
+  </Stack.Navigator>
+)
+
+// Стек для нейрочата
+const ChatStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="ChatMain" component={ChatScreen} />
   </Stack.Navigator>
 )
 
 export const AppNavigator: React.FC = () => {
   return (
     <NavigationContainer>
-      <StatusBar style="dark" backgroundColor={theme.colors.white} />
+      <StatusBar style="light" backgroundColor={theme.colors.primary} />
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -70,42 +95,32 @@ export const AppNavigator: React.FC = () => {
           }}
         />
         <Tab.Screen 
-          name="Bank" 
-          component={BankScreen}
+          name="Shop" 
+          component={ShopStack}
           options={{
-            title: 'Банк',
+            title: 'L-shop',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-              <TabIcon name="wallet" color={color} size={size} />
+              <TabIcon name="shop" color={color} size={size} />
             ),
           }}
         />
         <Tab.Screen 
-          name="Grades" 
-          component={GradesScreen}
+          name="Auction" 
+          component={AuctionStack}
           options={{
-            title: 'Успеваемость',
+            title: 'Аукцион',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-              <TabIcon name="chart" color={color} size={size} />
+              <TabIcon name="auction" color={color} size={size} />
             ),
           }}
         />
         <Tab.Screen 
-          name="Republic" 
-          component={RepublicScreen}
+          name="Neuro" 
+          component={ChatStack}
           options={{
-            title: 'Республика',
+            title: 'Нейрочат',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-              <TabIcon name="people" color={color} size={size} />
-            ),
-          }}
-        />
-        <Tab.Screen 
-          name="Profile" 
-          component={AuthScreen}
-          options={{
-            title: 'Профиль',
-            tabBarIcon: ({ color, size }: { color: string; size: number }) => (
-              <TabIcon name="person" color={color} size={size} />
+              <TabIcon name="chat" color={color} size={size} />
             ),
           }}
         />
@@ -124,10 +139,9 @@ interface TabIconProps {
 const TabIcon: React.FC<TabIconProps> = ({ name, color, size }) => {
   const iconMap: Record<string, string> = {
     home: '🏠',
-    wallet: '💳',
-    chart: '📊',
-    people: '👥',
-    person: '👤',
+    shop: '🛒',
+    auction: '🔨',
+    chat: '🤖',
   }
 
   return (
