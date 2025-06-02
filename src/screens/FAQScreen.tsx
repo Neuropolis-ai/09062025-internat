@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface FAQ {
   id: string
@@ -89,6 +90,7 @@ const categories = [
 ]
 
 export const FAQScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [faqs, setFaqs] = useState(mockFAQs)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -164,8 +166,17 @@ export const FAQScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Часто задаваемые вопросы</Text>
-        <Text style={styles.headerSubtitle}>Найдите ответы на популярные вопросы</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Часто задаваемые вопросы</Text>
+          <Text style={styles.headerSubtitle}>Найдите ответы на популярные вопросы</Text>
+        </View>
       </View>
 
       {/* Search */}
@@ -566,6 +577,16 @@ const styles = StyleSheet.create({
     color: '#333333',
     fontSize: 14,
     fontWeight: '600',
+  },
+  backButton: {
+    padding: 4,
+  },
+  backIcon: {
+    fontSize: 14,
+    color: '#333333',
+  },
+  headerContent: {
+    flex: 1,
   },
 })
 

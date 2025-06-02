@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface Notification {
   id: string
@@ -82,6 +83,7 @@ const filterOptions = [
 ]
 
 export const NotificationsScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [notifications, setNotifications] = useState(mockNotifications)
   const [activeFilter, setActiveFilter] = useState('all')
 
@@ -119,7 +121,7 @@ export const NotificationsScreen: React.FC = () => {
     if (!groups[group]) {
       groups[group] = []
     }
-    groups[group].push(notification)
+    groups[group]!.push(notification)
     return groups
   }, {} as Record<string, Notification[]>)
 
@@ -239,6 +241,13 @@ export const NotificationsScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        
         <View style={styles.headerLeft}>
           <Text style={styles.headerTitle}>Уведомления</Text>
           {unreadCount > 0 && (
@@ -332,6 +341,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIcon: {
+    fontSize: 16,
   },
   headerLeft: {
     flexDirection: 'row',

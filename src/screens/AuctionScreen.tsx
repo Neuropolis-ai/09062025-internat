@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface AuctionItem {
   id: string
@@ -73,6 +74,7 @@ const mockBids: Record<string, Bid[]> = {
 }
 
 export const AuctionScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [selectedAuction, setSelectedAuction] = useState<AuctionItem | null>(null)
   const [bidAmount, setBidAmount] = useState<string>('')
   const [refreshing, setRefreshing] = useState(false)
@@ -180,6 +182,25 @@ export const AuctionScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Аукцион лицея</Text>
+          <Text style={styles.headerSubtitle}>Торги и уникальные лоты</Text>
+        </View>
+        
+        <TouchableOpacity style={styles.statsButton}>
+          <Text style={styles.statsIcon}>📊</Text>
+        </TouchableOpacity>
+      </View>
+
       {selectedAuction ? (
         // Детальный вид аукциона
         <ScrollView style={styles.detailContainer}>
@@ -265,13 +286,6 @@ export const AuctionScreen: React.FC = () => {
       ) : (
         // Список аукционов
         <>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Аукцион</Text>
-            <TouchableOpacity style={styles.refreshButton}>
-              <Text style={styles.refreshIcon}>🔄</Text>
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>3</Text>
@@ -315,15 +329,30 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
+  backButton: {
+    padding: 8,
+  },
+  backIcon: {
+    fontSize: 20,
+  },
+  headerContent: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#8B2439',
   },
-  refreshButton: {
+  headerSubtitle: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  statsButton: {
     padding: 8,
   },
-  refreshIcon: {
+  statsIcon: {
     fontSize: 20,
   },
   statsContainer: {
@@ -438,9 +467,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
-  },
-  backButton: {
-    marginRight: 16,
   },
   backButtonText: {
     fontSize: 16,

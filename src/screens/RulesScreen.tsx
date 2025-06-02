@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface RuleSection {
   id: string
@@ -112,6 +113,7 @@ const ruleSections: RuleSection[] = [
 ]
 
 export const RulesScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [selectedSection, setSelectedSection] = useState<string>('general')
   const [readSections, setReadSections] = useState<Set<string>>(new Set())
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -130,27 +132,39 @@ export const RulesScreen: React.FC = () => {
     return ruleSections.find(section => section.id === selectedSection) || ruleSections[0]
   }
 
+  const currentSection = getCurrentSection()
+  if (!currentSection) return null
+
   const allSectionsRead = ruleSections.every(section => readSections.has(section.id))
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Правила лицея</Text>
-        <Text style={styles.headerSubtitle}>
-          Изучите все разделы для успешного обучения
-        </Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
         
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}>
-            <View style={[
-              styles.progressFill,
-              { width: `${(readSections.size / ruleSections.length) * 100}%` }
-            ]} />
-          </View>
-          <Text style={styles.progressText}>
-            {readSections.size} из {ruleSections.length} разделов прочитано
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Правила лицея</Text>
+          <Text style={styles.headerSubtitle}>
+            Изучите все разделы для успешного обучения
           </Text>
+          
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View style={[
+                styles.progressFill,
+                { width: `${(readSections.size / ruleSections.length) * 100}%` }
+              ]} />
+            </View>
+            <Text style={styles.progressText}>
+              {readSections.size} из {ruleSections.length} разделов прочитано
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -208,10 +222,10 @@ export const RulesScreen: React.FC = () => {
         <ScrollView style={styles.sectionContent}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionIcon}>{getCurrentSection().icon}</Text>
+              <Text style={styles.sectionIcon}>{currentSection.icon}</Text>
               <View style={styles.sectionTitleContainer}>
-                <Text style={styles.sectionTitle}>{getCurrentSection().title}</Text>
-                {getCurrentSection().important && (
+                <Text style={styles.sectionTitle}>{currentSection.title}</Text>
+                {currentSection.important && (
                   <View style={styles.importantLabel}>
                     <Text style={styles.importantLabelText}>Важно</Text>
                   </View>
@@ -219,15 +233,15 @@ export const RulesScreen: React.FC = () => {
               </View>
             </View>
             
-            {getCurrentSection().lastUpdated && (
+            {currentSection.lastUpdated && (
               <Text style={styles.lastUpdated}>
-                Обновлено: {new Date(getCurrentSection().lastUpdated!).toLocaleDateString('ru-RU')}
+                Обновлено: {new Date(currentSection.lastUpdated).toLocaleDateString('ru-RU')}
               </Text>
             )}
           </View>
 
           <View style={styles.contentList}>
-            {getCurrentSection().content.map((item, index) => (
+            {currentSection.content.map((item, index) => (
               <View key={index} style={styles.contentItem}>
                 <View style={styles.bulletPoint}>
                   <Text style={styles.bulletText}>{index + 1}</Text>
@@ -297,6 +311,19 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    padding: 8,
+  },
+  backIcon: {
+    fontSize: 20,
+    color: '#333333',
+  },
+  headerContent: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,

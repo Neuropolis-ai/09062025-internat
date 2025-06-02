@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface Product {
   id: string
@@ -25,6 +26,7 @@ const mockProducts: Product[] = [
 ]
 
 export const ShopScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string>('Все')
   const [cartVisible, setCartVisible] = useState(false)
@@ -124,18 +126,28 @@ export const ShopScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>L-Shop</Text>
         <TouchableOpacity 
-          style={styles.cartButton}
-          onPress={() => setCartVisible(!cartVisible)}
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
         >
-          <Text style={styles.cartIcon}>🛒</Text>
-          {cartItemsCount > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartItemsCount}</Text>
-            </View>
-          )}
+          <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>L-Shop</Text>
+          <Text style={styles.headerSubtitle}>Магазин лицея</Text>
+        </View>
+        
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.cartButton} onPress={() => setCartVisible(!cartVisible)}>
+            <Text style={styles.cartIcon}>🛒</Text>
+            {cartItemsCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cartItemsCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Categories */}
@@ -227,10 +239,27 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
+  backButton: {
+    padding: 8,
+  },
+  backIcon: {
+    fontSize: 24,
+  },
+  headerContent: {
+    flex: 1,
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#8B2439',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   cartButton: {
     position: 'relative',

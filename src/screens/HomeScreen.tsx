@@ -1,10 +1,26 @@
 import React from 'react'
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native'
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import type { NavigationProp } from '@react-navigation/native'
 import { theme } from '../styles/unistyles'
 
+type RootStackParamList = {
+  HomeMain: undefined
+  Chat: undefined
+  Notifications: undefined
+  FAQ: undefined
+  Rules: undefined
+  Shop: undefined
+  Auction: undefined
+}
+
+type HomeNavigationProp = NavigationProp<RootStackParamList>
+
 export const HomeScreen: React.FC = () => {
-  const handleModulePress = (moduleName: string): void => {
-    Alert.alert('Модуль', `Открываем модуль: ${moduleName}`)
+  const navigation = useNavigation<HomeNavigationProp>()
+
+  const handleModulePress = (module: keyof RootStackParamList): void => {
+    navigation.navigate(module)
   }
 
   const getCurrentGreeting = (): string => {
@@ -52,7 +68,7 @@ export const HomeScreen: React.FC = () => {
           {/* Лицейский банк */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('Лицейский банк')}
+            onPress={() => navigation.navigate('Shop')}
           >
             <Text style={styles.moduleIcon}>💳</Text>
             <Text style={styles.moduleTitle}>Лицейский банк</Text>
@@ -62,7 +78,7 @@ export const HomeScreen: React.FC = () => {
           {/* Успеваемость */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('Успеваемость')}
+            onPress={() => navigation.navigate('FAQ')}
           >
             <Text style={styles.moduleIcon}>📊</Text>
             <Text style={styles.moduleTitle}>Успеваемость</Text>
@@ -72,27 +88,27 @@ export const HomeScreen: React.FC = () => {
           {/* Республика */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('Лицейская республика')}
+            onPress={() => navigation.navigate('Rules')}
           >
             <Text style={styles.moduleIcon}>🏛️</Text>
             <Text style={styles.moduleTitle}>Республика</Text>
             <Text style={styles.moduleDescription}>Самоуправление и активности</Text>
           </TouchableOpacity>
 
-          {/* Госзакупки */}
+          {/* Уведомления */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('Госзакупки')}
+            onPress={() => navigation.navigate('Notifications')}
           >
-            <Text style={styles.moduleIcon}>📋</Text>
-            <Text style={styles.moduleTitle}>Госзакупки</Text>
-            <Text style={styles.moduleDescription}>Тендеры и контракты</Text>
+            <Text style={styles.moduleIcon}>🔔</Text>
+            <Text style={styles.moduleTitle}>Уведомления</Text>
+            <Text style={styles.moduleDescription}>Важные сообщения</Text>
           </TouchableOpacity>
 
           {/* L-shop */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('L-shop')}
+            onPress={() => navigation.navigate('Shop')}
           >
             <Text style={styles.moduleIcon}>🛒</Text>
             <Text style={styles.moduleTitle}>L-shop</Text>
@@ -102,7 +118,7 @@ export const HomeScreen: React.FC = () => {
           {/* Аукцион */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => handleModulePress('Аукцион')}
+            onPress={() => navigation.navigate('Auction')}
           >
             <Text style={styles.moduleIcon}>🔨</Text>
             <Text style={styles.moduleTitle}>Аукцион</Text>
@@ -125,7 +141,7 @@ export const HomeScreen: React.FC = () => {
         </Text>
         <TouchableOpacity 
           style={styles.chatButton}
-          onPress={() => handleModulePress('Нейрочат')}
+          onPress={() => navigation.navigate('Chat')}
         >
           <Text style={styles.chatButtonText}>Начать чат</Text>
         </TouchableOpacity>

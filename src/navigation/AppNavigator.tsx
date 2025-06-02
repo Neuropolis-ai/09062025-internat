@@ -1,14 +1,39 @@
 import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { StatusBar } from 'expo-status-bar'
 import { Text } from 'react-native'
 import { theme } from '../styles/unistyles'
 
 // Экраны
-import { SimpleHomeScreen } from '../screens/SimpleHomeScreen'
+import { HomeScreen } from '../screens/HomeScreen'
+import { BankScreen } from '../screens/BankScreen'
+import { GradesScreen } from '../screens/GradesScreen'
+import { RepublicScreen } from '../screens/RepublicScreen'
+import { AuthScreen } from '../screens/AuthScreen'
+import { ChatScreen } from '../screens/ChatScreen'
+import { NotificationsScreen } from '../screens/NotificationsScreen'
+import { FAQScreen } from '../screens/FAQScreen'
+import { RulesScreen } from '../screens/RulesScreen'
+import { ShopScreen } from '../screens/ShopScreen'
+import { AuctionScreen } from '../screens/AuctionScreen'
 
 const Tab = createBottomTabNavigator()
+const Stack = createNativeStackNavigator()
+
+// Стек для домашнего экрана с дополнительными экранами
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="HomeMain" component={HomeScreen} />
+    <Stack.Screen name="Chat" component={ChatScreen} />
+    <Stack.Screen name="Notifications" component={NotificationsScreen} />
+    <Stack.Screen name="FAQ" component={FAQScreen} />
+    <Stack.Screen name="Rules" component={RulesScreen} />
+    <Stack.Screen name="Shop" component={ShopScreen} />
+    <Stack.Screen name="Auction" component={AuctionScreen} />
+  </Stack.Navigator>
+)
 
 export const AppNavigator: React.FC = () => {
   return (
@@ -36,7 +61,7 @@ export const AppNavigator: React.FC = () => {
       >
         <Tab.Screen 
           name="Home" 
-          component={SimpleHomeScreen}
+          component={HomeStack}
           options={{
             title: 'Главная',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
@@ -46,7 +71,7 @@ export const AppNavigator: React.FC = () => {
         />
         <Tab.Screen 
           name="Bank" 
-          component={SimpleHomeScreen}
+          component={BankScreen}
           options={{
             title: 'Банк',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
@@ -56,7 +81,7 @@ export const AppNavigator: React.FC = () => {
         />
         <Tab.Screen 
           name="Grades" 
-          component={SimpleHomeScreen}
+          component={GradesScreen}
           options={{
             title: 'Успеваемость',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
@@ -66,7 +91,7 @@ export const AppNavigator: React.FC = () => {
         />
         <Tab.Screen 
           name="Republic" 
-          component={SimpleHomeScreen}
+          component={RepublicScreen}
           options={{
             title: 'Республика',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (
@@ -75,8 +100,8 @@ export const AppNavigator: React.FC = () => {
           }}
         />
         <Tab.Screen 
-          name="Auth" 
-          component={SimpleHomeScreen}
+          name="Profile" 
+          component={AuthScreen}
           options={{
             title: 'Профиль',
             tabBarIcon: ({ color, size }: { color: string; size: number }) => (

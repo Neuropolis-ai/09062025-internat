@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, FlatList, Animated } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
 
 interface Message {
   id: string
@@ -35,6 +36,7 @@ const aiResponses = [
 ]
 
 export const ChatScreen: React.FC = () => {
+  const navigation = useNavigation()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -100,15 +102,17 @@ export const ChatScreen: React.FC = () => {
       setIsAITyping(false)
       const aiResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)]
       
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: aiResponse,
-        sender: 'ai',
-        timestamp: new Date(),
-        status: 'read'
+      if (aiResponse) {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: aiResponse,
+          sender: 'ai',
+          timestamp: new Date(),
+          status: 'read'
+        }
+        
+        setMessages(prev => [...prev, aiMessage])
       }
-      
-      setMessages(prev => [...prev, aiMessage])
     }, 1500 + Math.random() * 1000)
   }
 
@@ -211,6 +215,13 @@ export const ChatScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backIcon}>←</Text>
+        </TouchableOpacity>
+        
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Нейрочат</Text>
           <Text style={styles.headerSubtitle}>AI-помощник лицея</Text>
@@ -540,6 +551,18 @@ const styles = StyleSheet.create({
   sendIcon: {
     fontSize: 16,
     color: '#FFFFFF',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  backIcon: {
+    fontSize: 16,
   },
 })
 
