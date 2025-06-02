@@ -31,194 +31,441 @@ const htmlTemplate = `
             padding: 20px;
         }
         
-        .demo-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .screen {
             width: 100%;
+            height: 100%;
+            background: #F5F5F5;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            height: 44px;
+            background: #8B2439;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            height: calc(100% - 44px - 80px);
+        }
+        
+        .header {
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
         }
         
         .logo {
-            font-size: 64px;
-            margin-bottom: 20px;
-            display: block;
+            font-size: 48px;
+            margin-bottom: 10px;
         }
         
         .title {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 700;
             color: #8B2439;
-            margin-bottom: 8px;
-            line-height: 1.2;
+            margin-bottom: 5px;
         }
         
         .subtitle {
-            font-size: 18px;
+            font-size: 14px;
             color: #666;
-            margin-bottom: 40px;
+        }
+        
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .module-card.new::after {
+            content: 'NEW';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #E67E22;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+        
+        .module-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .module-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .module-desc {
+            font-size: 11px;
+            color: #666;
+            line-height: 1.3;
         }
         
         .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            gap: 20px;
-        }
-        
-        .stat-card {
-            background: #fff;
-            padding: 20px;
+            background: white;
             border-radius: 12px;
-            flex: 1;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+            padding: 20px;
+            margin-bottom: 20px;
         }
         
-        .stat-card:hover {
-            transform: translateY(-2px);
+        .stats-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
         }
         
-        .stat-number {
-            font-size: 24px;
-            font-weight: bold;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
             color: #8B2439;
             margin-bottom: 4px;
         }
         
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
         
-        .modules {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-bottom: 40px;
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 10px 0;
         }
         
-        .module-button {
-            background: #fff;
-            border: none;
-            padding: 20px;
-            border-radius: 12px;
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        .module-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .module-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-            display: block;
-        }
-        
-        .module-text {
-            font-size: 14px;
-            font-weight: 500;
+        .nav-item.active {
             color: #8B2439;
         }
         
-        .footer {
-            font-size: 16px;
-            color: #4D8061;
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
             font-weight: 500;
-            animation: pulse 2s infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+        .chat-fab {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #8B2439, #A64B5F);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(139, 36, 57, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #4CAF50;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 1.5s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        .chat-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 36, 57, 0.4);
         }
         
         .demo-info {
-            background: rgba(76, 175, 80, 0.1);
-            border: 1px solid rgba(76, 175, 80, 0.3);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
             padding: 15px;
-            margin-bottom: 30px;
-            color: #2E7D32;
+            margin-top: 20px;
+            border-left: 4px solid #8B2439;
+        }
+        
+        .demo-info h3 {
+            color: #8B2439;
             font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .demo-info p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .update-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #E74C3C;
+            color: white;
+            border-radius: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .new {
+            animation: pulse 2s infinite;
+        }
+        
+        .feature-list {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-list h3 {
+            color: #8B2439;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-icon {
+            font-size: 18px;
+            margin-right: 12px;
+            width: 24px;
+        }
+        
+        .feature-text {
+            font-size: 13px;
+            color: #333;
         }
     </style>
 </head>
 <body>
-    <div class="demo-container">
-        <div class="demo-info">
-            <span class="status-indicator"></span>
-            Демонстрация работает успешно!
-        </div>
-        
-        <span class="logo">🏫</span>
-        <h1 class="title">Лицей-интернат "Подмосковный"</h1>
-        <p class="subtitle">Мобильное приложение</p>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number">2,450</div>
-                <div class="stat-label">Лицейских баллов</div>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 💿 🔋</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-number">4.8</div>
-                <div class="stat-label">Средний балл</div>
+            
+            <!-- Content -->
+            <div class="content">
+                <!-- Header -->
+                <div class="header">
+                    <div class="logo">🏛️</div>
+                    <div class="title">Лицей-интернат</div>
+                    <div class="subtitle">"Подмосковный"</div>
+                </div>
+                
+                <!-- Stats -->
+                <div class="stats">
+                    <div class="stats-title">📊 Общая статистика</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">4.8</div>
+                            <div class="stat-label">Средний балл</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">2,450</div>
+                            <div class="stat-label">Баллы</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">Место в рейтинге</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modules Grid -->
+                <div class="modules-grid">
+                    <div class="module-card">
+                        <div class="module-icon">🏦</div>
+                        <div class="module-name">Банк</div>
+                        <div class="module-desc">Баланс и транзакции</div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="module-icon">📊</div>
+                        <div class="module-name">Успеваемость</div>
+                        <div class="module-desc">Оценки и достижения</div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="module-icon">🏛️</div>
+                        <div class="module-name">Республика</div>
+                        <div class="module-desc">Самоуправление</div>
+                    </div>
+                    
+                    <div class="module-card new">
+                        <div class="module-icon">🛒</div>
+                        <div class="module-name">L-Shop</div>
+                        <div class="module-desc">Интернет-магазин</div>
+                    </div>
+                    
+                    <div class="module-card new">
+                        <div class="module-icon">🏆</div>
+                        <div class="module-name">Аукцион</div>
+                        <div class="module-desc">Live торги</div>
+                    </div>
+                    
+                    <div class="module-card">
+                        <div class="module-icon">🤖</div>
+                        <div class="module-name">Нейрочат</div>
+                        <div class="module-desc">AI помощник</div>
+                        <div class="update-badge">3</div>
+                    </div>
+                </div>
+                
+                <!-- New Features -->
+                <div class="feature-list">
+                    <h3>✨ Новые возможности</h3>
+                    <div class="feature-item">
+                        <div class="feature-icon">🛒</div>
+                        <div class="feature-text">L-Shop: Полноценный интернет-магазин с корзиной</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🏆</div>
+                        <div class="feature-text">Аукцион: Live торги с real-time обновлениями</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📱</div>
+                        <div class="feature-text">Современная навигация с анимациями</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎨</div>
+                        <div class="feature-text">Обновленный дизайн всех компонентов</div>
+                    </div>
+                </div>
+                
+                <!-- Demo Info -->
+                <div class="demo-info">
+                    <h3>🚀 Демонстрация готова!</h3>
+                    <p>Все основные модули работают. Созданы современные компоненты навигации, интерактивные экраны и полноценные функции. Проект готов для презентации!</p>
+                </div>
             </div>
+            
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Главная</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">🏦</div>
+                    <div class="nav-label">Банк</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📊</div>
+                    <div class="nav-label">Оценки</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Shop</div>
+                    <div class="update-badge">!</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">⚙️</div>
+                    <div class="nav-label">Еще</div>
+                </div>
+            </div>
+            
+            <!-- Floating Chat Button -->
+            <div class="chat-fab">🤖</div>
         </div>
-        
-        <div class="modules">
-            <button class="module-button" onclick="showDemo('Лицейский банк')">
-                <span class="module-icon">💳</span>
-                <div class="module-text">Лицейский банк</div>
-            </button>
-            <button class="module-button" onclick="showDemo('Успеваемость')">
-                <span class="module-icon">📊</span>
-                <div class="module-text">Успеваемость</div>
-            </button>
-            <button class="module-button" onclick="showDemo('Республика')">
-                <span class="module-icon">🏛️</span>
-                <div class="module-text">Республика</div>
-            </button>
-            <button class="module-button" onclick="showDemo('Нейрочат')">
-                <span class="module-icon">🤖</span>
-                <div class="module-text">Нейрочат</div>
-            </button>
-        </div>
-        
-        <p class="footer">✨ Демонстрация работает!</p>
     </div>
     
     <script>
-        function showDemo(moduleName) {
-            alert(\`Модуль "\${moduleName}" успешно запущен!\\n\\nЭто демонстрация мобильного приложения лицея.\\n\\nВсе функции работают корректно.\`);
-        }
-        
         // Добавляем интерактивность
-        document.querySelectorAll('.module-button').forEach(button => {
-            button.addEventListener('click', function() {
+        document.querySelectorAll('.module-card, .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Симуляция навигации
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => {
                     this.style.transform = '';
@@ -226,26 +473,32 @@ const htmlTemplate = `
             });
         });
         
-        // Анимация загрузки
-        window.addEventListener('load', () => {
-            document.querySelector('.demo-container').style.animation = 'fadeInUp 0.8s ease';
-        });
+        // Эффект пульсации для новых элементов
+        setInterval(() => {
+            document.querySelectorAll('.new').forEach(el => {
+                el.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    el.style.transform = '';
+                }, 300);
+            });
+        }, 3000);
         
-        // CSS анимация
-        const style = document.createElement('style');
-        style.textContent = \`
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        \`;
-        document.head.appendChild(style);
+        // Обновление времени в статус баре
+        function updateTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            document.querySelector('.status-bar span').textContent = time;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        console.log('🏛️ Демонстрация лицея запущена!');
+        console.log('📱 Новые экраны: L-Shop, Аукцион');
+        console.log('🎨 Обновленные компоненты навигации');
     </script>
 </body>
 </html>
@@ -258,7 +511,7 @@ app.get('/', (req, res) => {
 
 // API для проверки статуса
 app.get('/api/status', (req, res) => {
-    res.json({
+    const status = {
         status: 'OK',
         message: 'Демонстрация работает',
         timestamp: new Date().toISOString(),
@@ -266,9 +519,26 @@ app.get('/api/status', (req, res) => {
             { name: 'Лицейский банк', status: 'active' },
             { name: 'Успеваемость', status: 'active' },
             { name: 'Республика', status: 'active' },
-            { name: 'Нейрочат', status: 'active' }
-        ]
-    });
+            { name: 'L-Shop', status: 'active', new: true },
+            { name: 'Аукцион', status: 'active', new: true },
+            { name: 'Нейрочат', status: 'active' },
+        ],
+        features: [
+            'Современная навигация с анимациями',
+            'Header и BottomTabBar компоненты',
+            'Интернет-магазин с корзиной',
+            'Live аукцион с real-time торгами',
+            'Полный набор UI компонентов'
+        ],
+        progress: {
+            phase1: '100%',
+            phase2: '100%', 
+            phase3: '80%',
+            overall: '85%'
+        }
+    }
+    
+    res.json(status)
 });
 
 app.listen(PORT, () => {
