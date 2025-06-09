@@ -92,6 +92,14 @@ const BidModal: React.FC<BidModalProps> = ({ visible, item, onClose, onConfirm }
       return;
     }
 
+    // Проверка на кратность минимальному шагу
+    const remainder = (amount - item.currentBid) % item.minIncrement;
+    if (remainder !== 0) {
+      const correctAmount = item.currentBid + Math.ceil((amount - item.currentBid) / item.minIncrement) * item.minIncrement;
+      setError(`Ставка должна быть кратна шагу ${item.minIncrement} L-Coin. Следующая возможная ставка: ${correctAmount} L-Coin`);
+      return;
+    }
+
     onConfirm(amount, comment);
     setBidAmount('');
     setComment('');
@@ -104,6 +112,17 @@ const BidModal: React.FC<BidModalProps> = ({ visible, item, onClose, onConfirm }
     setError('');
     onClose();
   };
+
+  // Функция для генерации вариантов ставок
+  const generateBidSuggestions = () => {
+    const suggestions = [];
+    for (let i = 1; i <= 3; i++) {
+      suggestions.push(minBid + (i - 1) * item.minIncrement);
+    }
+    return suggestions;
+  };
+
+  const bidSuggestions = generateBidSuggestions();
 
   return (
     <Modal
@@ -140,8 +159,27 @@ const BidModal: React.FC<BidModalProps> = ({ visible, item, onClose, onConfirm }
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             
             <Text style={styles.hintText}>
-              Минимальный шаг ставки: {item.minIncrement} L-Coin
+              Минимальная ставка: {minBid} L-Coin (шаг {item.minIncrement} L-Coin)
             </Text>
+
+            {/* Быстрые варианты ставок */}
+            <View style={styles.suggestionsContainer}>
+              <Text style={styles.suggestionsLabel}>Быстрый выбор:</Text>
+              <View style={styles.suggestionsRow}>
+                {bidSuggestions.map((suggestion, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionButton}
+                    onPress={() => {
+                      setBidAmount(suggestion.toString());
+                      setError('');
+                    }}
+                  >
+                    <Text style={styles.suggestionText}>{suggestion}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
 
             <Text style={styles.modalLabel}>Комментарий (необязательно)</Text>
             <TextInput
@@ -658,5 +696,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  suggestionsContainer: {
+    marginBottom: 16,
+  },
+  suggestionsLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B2439',
+    marginBottom: 8,
+  },
+  suggestionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  suggestionButton: {
+    backgroundColor: '#F2F2F7',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  suggestionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B2439',
   },
 }); 
