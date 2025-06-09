@@ -22,8 +22,7 @@ export default function HomeScreen() {
         router.push('/(tabs)/bank');
         break;
       case 'grades':
-        // TODO: Создать экран успеваемости
-        console.log('Переход к успеваемости');
+        router.push('/uspevaemost');
         break;
       case 'contracts':
         // TODO: Создать экран госзаказов
