@@ -90,8 +90,7 @@ export default function RespublikaScreen() {
       {/* Шапка с заголовком и уведомлениями */}
       <Header 
         title="Лицейская республика" 
-        showBackButton={true}
-        onBackPress={handleBackPress}
+        showBackButton={false}
         onNotificationPress={handleNotificationsPress}
         notificationCount={5}
       />
