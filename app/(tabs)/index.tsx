@@ -25,8 +25,7 @@ export default function HomeScreen() {
         router.push('/uspevaemost');
         break;
       case 'contracts':
-        // TODO: Создать экран госзаказов
-        console.log('Переход к госзаказам');
+        router.push('/(tabs)/zakupki');
         break;
       case 'republic':
         router.push('/respublika');
