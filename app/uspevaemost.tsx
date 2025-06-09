@@ -169,7 +169,7 @@ export default function UspevamostScreen() {
               >
                 <LineChart
                   data={gradeData}
-                  width={Math.max(width - 100, gradeData.length * 35)}
+                  width={gradeData.length * 35 + 40}
                   height={160}
                   spacing={35}
                   textShiftY={12}
@@ -189,6 +189,7 @@ export default function UspevamostScreen() {
                   adjustToWidth={false}
                   hideYAxisText={false}
                   yAxisLabelWidth={25}
+                  yAxisLabelSuffix=""
                   yAxisColor="#E0E0E0"
                   xAxisColor="#E0E0E0"
                   yAxisThickness={1}
@@ -590,9 +591,11 @@ const styles = StyleSheet.create({
 
   chartScrollContainer: {
     marginBottom: 25,
+    width: '100%',
   },
 
   chartContainer: {
     alignItems: 'flex-start',
+    overflow: 'hidden',
   },
 }); 
