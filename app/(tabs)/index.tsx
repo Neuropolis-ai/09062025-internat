@@ -40,8 +40,7 @@ export default function HomeScreen() {
   };
 
   const handleNotificationsPress = () => {
-    // TODO: Переход к уведомлениям
-    console.log('Переход к уведомлениям');
+    router.push('/(tabs)/notifications');
   };
 
   return (
@@ -51,6 +50,7 @@ export default function HomeScreen() {
       {/* Унифицированный хедер */}
       <Header 
         title='Лицей-интернат "Подмосковный"' 
+        notificationCount={3}
         onNotificationPress={handleNotificationsPress}
       />
 

@@ -7,6 +7,7 @@ interface HeaderProps {
   onNotificationPress?: () => void;
   onBackPress?: () => void;
   showBackButton?: boolean;
+  showNotificationButton?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -14,7 +15,8 @@ export const Header: React.FC<HeaderProps> = ({
   notificationCount = 3, 
   onNotificationPress,
   onBackPress,
-  showBackButton = false
+  showBackButton = false,
+  showNotificationButton = true,
 }) => {
   const handleNotificationPress = () => {
     if (onNotificationPress) {
@@ -48,15 +50,22 @@ export const Header: React.FC<HeaderProps> = ({
       
       <Text style={styles.headerTitle}>{title}</Text>
       
-      <TouchableOpacity 
-        style={styles.notificationButton} 
-        onPress={handleNotificationPress}
-      >
-        <Text style={styles.notificationEmoji}>🔔</Text>
-        <View style={styles.notificationBadge}>
-          <Text style={styles.notificationCount}>{notificationCount}</Text>
-        </View>
-      </TouchableOpacity>
+      {/* Кнопка уведомлений - показываем только если showNotificationButton = true */}
+      {showNotificationButton ? (
+        <TouchableOpacity 
+          style={styles.notificationButton} 
+          onPress={handleNotificationPress}
+        >
+          <Text style={styles.notificationEmoji}>🔔</Text>
+          {notificationCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationCount}>{notificationCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.rightSpacer} />
+      )}
     </View>
   );
 };
@@ -85,6 +94,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   leftSpacer: {
+    width: 40,
+  },
+  rightSpacer: {
     width: 40,
   },
   headerTitle: {
