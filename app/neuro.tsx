@@ -147,6 +147,10 @@ const NeuroChat = () => {
     Alert.alert('Уведомления', 'Пока нет новых уведомлений в нейрочате');
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   const renderMessage = (message: Message) => (
     <View key={message.id} style={[
       styles.messageContainer,
@@ -220,6 +224,8 @@ const NeuroChat = () => {
         title="Нейрочат" 
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
+        onBackPress={handleBackPress}
+        showBackButton={true}
         showNotificationButton={true}
       />
 

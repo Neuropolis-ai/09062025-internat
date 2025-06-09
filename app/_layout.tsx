@@ -9,6 +9,7 @@ export default function RootLayout() {
       <Stack.Screen name="uspevaemost" options={{ headerShown: false }} />
       <Stack.Screen name="respublika" options={{ headerShown: false }} />
       <Stack.Screen name="bank" options={{ headerShown: false }} />
+      <Stack.Screen name="neuro" options={{ headerShown: false }} />
     </Stack>
   );
 } 
