@@ -161,14 +161,6 @@ export default function UspevamostScreen() {
             </View>
             
             <View style={styles.chartContainer}>
-              {/* Фиксированная ось Y */}
-              <View style={styles.yAxisContainer}>
-                <Text style={styles.yAxisLabel}>5</Text>
-                <Text style={styles.yAxisLabel}>4</Text>
-                <Text style={styles.yAxisLabel}>3</Text>
-                <Text style={styles.yAxisLabel}>2</Text>
-              </View>
-              
               {/* Скроллируемый график */}
               <ScrollView 
                 horizontal 
@@ -193,14 +185,20 @@ export default function UspevamostScreen() {
                   initialSpacing={20}
                   noOfSections={3}
                   maxValue={5}
+                  stepValue={1}
                   adjustToWidth={false}
-                  hideYAxisText={true}
-                  yAxisColor="transparent"
+                  hideYAxisText={false}
+                  yAxisLabelWidth={25}
+                  yAxisColor="#E0E0E0"
                   xAxisColor="#E0E0E0"
-                  yAxisThickness={0}
+                  yAxisThickness={1}
                   xAxisLabelTextStyle={{
                     color: '#666', 
                     fontSize: 10,
+                  }}
+                  yAxisTextStyle={{
+                    color: '#666',
+                    fontSize: 12,
                   }}
                   focusEnabled
                   showTextOnFocus
@@ -595,21 +593,6 @@ const styles = StyleSheet.create({
   },
 
   chartContainer: {
-    flexDirection: 'row',
     alignItems: 'flex-start',
-  },
-  yAxisContainer: {
-    width: 25,
-    height: 160,
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingRight: 4,
-    paddingTop: 15,
-    paddingBottom: 35,
-  },
-  yAxisLabel: {
-    fontSize: 12,
-    color: '#666',
-    fontWeight: '500',
   },
 }); 
