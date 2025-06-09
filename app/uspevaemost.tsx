@@ -260,9 +260,6 @@ export default function UspevamostScreen() {
                       {new Date(achievement.date).toLocaleDateString('ru-RU')}
                     </Text>
                   </View>
-                  <TouchableOpacity style={styles.achievementViewButton}>
-                    <Ionicons name="eye" size={16} color="#666666" />
-                  </TouchableOpacity>
                 </View>
               ))}
             </View>
@@ -530,9 +527,6 @@ const styles = StyleSheet.create({
   achievementDateModern: {
     fontSize: 14,
     color: '#666666',
-  },
-  achievementViewButton: {
-    padding: 8,
   },
   
   // Модальное окно

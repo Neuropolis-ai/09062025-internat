@@ -19,7 +19,7 @@ export default function HomeScreen() {
     // Навигация по модулям
     switch (module) {
       case 'bank':
-        router.push('/(tabs)/bank');
+        router.push('/bank');
         break;
       case 'grades':
         router.push('/uspevaemost');

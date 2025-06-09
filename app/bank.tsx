@@ -1,7 +1,8 @@
 import React from 'react'
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Header } from '../components/Header'
+import { Header } from './components/Header'
+import { router } from 'expo-router'
 
 interface Transaction {
   id: string
@@ -74,6 +75,10 @@ export default function BankScreen() {
     console.log('Уведомления нажаты')
   }
 
+  const handleBackPress = (): void => {
+    router.replace('/');
+  }
+
   const handleShowAllOperations = (): void => {
     console.log('Показать все операции')
   }
@@ -88,6 +93,8 @@ export default function BankScreen() {
       <Header 
         title="Лицейский банк" 
         onNotificationPress={handleNotificationPress}
+        onBackPress={handleBackPress}
+        showBackButton={true}
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
