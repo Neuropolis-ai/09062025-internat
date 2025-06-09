@@ -73,7 +73,7 @@ export default function BankScreen() {
   const innl = '459183'
 
   const handleNotificationPress = (): void => {
-    console.log('Уведомления нажаты')
+    router.push('/(tabs)/notifications');
   }
 
   const handleBackPress = (): void => {

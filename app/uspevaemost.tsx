@@ -104,7 +104,7 @@ export default function UspevamostScreen() {
   };
 
   const handleNotificationPress = () => {
-    console.log('Переход к уведомлениям');
+    router.push('/(tabs)/notifications');
   };
 
   const handleBackPress = () => {

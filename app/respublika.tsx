@@ -19,7 +19,7 @@ export default function RespublikaScreen() {
   };
 
   const handleNotificationsPress = () => {
-    console.log('Переход к уведомлениям');
+    router.push('/(tabs)/notifications');
   };
 
   // Данные о принадлежностях ученика

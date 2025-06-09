@@ -12,6 +12,8 @@ import {
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Header } from '../components/Header';
 
 interface Task {
   id: string;
@@ -32,6 +34,7 @@ interface Contract {
 }
 
 export default function ZakupkiScreen() {
+  const router = useRouter();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [bid, setBid] = useState('');
@@ -132,6 +135,14 @@ export default function ZakupkiScreen() {
     );
   };
 
+  const handleNotificationPress = () => {
+    router.push('/(tabs)/notifications');
+  };
+
+  const handleBackPress = () => {
+    router.back();
+  };
+
   const TaskCard = ({ task }: { task: Task }) => (
     <TouchableOpacity
       style={styles.taskCard}
@@ -178,18 +189,14 @@ export default function ZakupkiScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Шапка */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Госзакупки</Text>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-          {notificationCount > 0 && (
-            <View style={styles.notificationBadge}>
-              <Text style={styles.notificationCount}>{notificationCount}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      {/* Унифицированный хедер */}
+      <Header 
+        title="Госзакупки" 
+        notificationCount={notificationCount}
+        onNotificationPress={handleNotificationPress}
+        onBackPress={handleBackPress}
+        showBackButton={true}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Доска контрактов */}
@@ -285,41 +292,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
-  },
-  header: {
-    backgroundColor: '#8B2439',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    flex: 1,
-    textAlign: 'center',
-  },
-  notificationButton: {
-    position: 'relative',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationCount: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   content: {
     flex: 1,
