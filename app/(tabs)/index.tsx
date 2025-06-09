@@ -309,6 +309,6 @@ const styles = StyleSheet.create({
 
   // Отступ для нижнего меню
   bottomPadding: {
-    height: 100,
+    height: 120,
   },
 }); 
