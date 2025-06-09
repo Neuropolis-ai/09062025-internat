@@ -225,7 +225,7 @@ const NeuroChat = () => {
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
         onBackPress={handleBackPress}
-        showBackButton={false}
+        showBackButton={true}
         showNotificationButton={true}
       />
 
