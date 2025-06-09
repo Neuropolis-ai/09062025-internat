@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Header } from './components/Header';
 
 interface Message {
   id: string;
@@ -142,6 +143,10 @@ const NeuroChat = () => {
     });
   };
 
+  const handleNotificationPress = () => {
+    Alert.alert('Уведомления', 'Пока нет новых уведомлений в нейрочате');
+  };
+
   const renderMessage = (message: Message) => (
     <View key={message.id} style={[
       styles.messageContainer,
@@ -149,7 +154,7 @@ const NeuroChat = () => {
     ]}>
       {!message.isUser && (
         <View style={styles.aiIcon}>
-          <Ionicons name="hardware-chip" size={16} color="#FFFFFF" />
+          <Text style={styles.robotEmoji}>🤖</Text>
         </View>
       )}
       <View style={[
@@ -178,7 +183,7 @@ const NeuroChat = () => {
     return (
       <View style={[styles.messageContainer, styles.aiMessage]}>
         <View style={styles.aiIcon}>
-          <Ionicons name="hardware-chip" size={16} color="#FFFFFF" />
+          <Text style={styles.robotEmoji}>🤖</Text>
         </View>
         <View style={[styles.messageBubble, styles.aiBubble, styles.typingBubble]}>
           <View style={styles.typingContainer}>
@@ -210,27 +215,13 @@ const NeuroChat = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Шапка */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        
-        <Text style={styles.headerTitle}>Нейрочат</Text>
-        
-        <TouchableOpacity
-          style={styles.notificationButton}
-          onPress={() => Alert.alert('Уведомления', 'Пока нет новых уведомлений')}
-        >
-          <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-          <View style={styles.notificationBadge}>
-            <Text style={styles.badgeText}>2</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Унифицированный хедер */}
+      <Header 
+        title="Нейрочат" 
+        notificationCount={2}
+        onNotificationPress={handleNotificationPress}
+        showNotificationButton={true}
+      />
 
       {/* Область чата */}
       <KeyboardAvoidingView 
@@ -291,57 +282,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F2F2F7',
   },
-  
-  // Шапка
-  header: {
-    backgroundColor: '#8B2439',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    flex: 1,
-    textAlign: 'center',
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
 
   // Чат
   chatContainer: {
@@ -366,14 +306,24 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   aiIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#8B2439',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
     marginBottom: 4,
+    borderWidth: 2,
+    borderColor: '#8B2439',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  robotEmoji: {
+    fontSize: 20,
   },
   messageBubble: {
     maxWidth: '75%',
@@ -442,28 +392,39 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E5EA',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 8,
   },
   textInput: {
     flex: 1,
     backgroundColor: '#F2F2F7',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     fontSize: 16,
-    maxHeight: 100,
+    maxHeight: 120,
     marginRight: 12,
     borderWidth: 1,
     borderColor: '#E5E5EA',
+    textAlignVertical: 'top',
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   sendButtonActive: {
     backgroundColor: '#8B2439',
