@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 // Включаем LayoutAnimation для Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -94,6 +95,7 @@ const FAQScreen: React.FC = () => {
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set([1])); // Первый вопрос открыт по умолчанию
   const [searchQuery, setSearchQuery] = useState('');
   const rotationValues = useRef<{ [key: number]: Animated.Value }>({});
+  const router = useRouter();
 
   // Инициализируем анимационные значения для иконок
   faqData.forEach(item => {
@@ -154,6 +156,10 @@ const FAQScreen: React.FC = () => {
     setSearchQuery('');
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   const renderFAQItem = (item: FAQItem) => {
     const isExpanded = expandedItems.has(item.id);
     const rotationValue = rotationValues.current[item.id];
@@ -192,7 +198,7 @@ const FAQScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       {/* Шапка */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>FAQ</Text>
