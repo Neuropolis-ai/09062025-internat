@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = ({
   notificationCount = 3, 
   onNotificationPress,
   onBackPress,
-  showBackButton = true
+  showBackButton = false
 }) => {
   const handleNotificationPress = () => {
     if (onNotificationPress) {

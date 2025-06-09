@@ -193,6 +193,7 @@ export default function UspevamostScreen() {
                   initialSpacing={20}
                   noOfSections={3}
                   maxValue={5}
+                  adjustToWidth={false}
                   hideYAxisText={true}
                   yAxisColor="transparent"
                   xAxisColor="#E0E0E0"
@@ -315,10 +316,11 @@ export default function UspevamostScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#8B2439',
   },
   content: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
     paddingHorizontal: 20,
     paddingTop: 20,
   },
