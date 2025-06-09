@@ -29,8 +29,7 @@ export default function HomeScreen() {
         console.log('Переход к госзаказам');
         break;
       case 'republic':
-        // TODO: Создать экран республики
-        console.log('Переход к республике');
+        router.push('/respublika');
         break;
       case 'terms':
         // TODO: Создать экран условий
