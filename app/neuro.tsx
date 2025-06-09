@@ -144,7 +144,7 @@ const NeuroChat = () => {
   };
 
   const handleNotificationPress = () => {
-    Alert.alert('Уведомления', 'Пока нет новых уведомлений в нейрочате');
+    router.push('/(tabs)/notifications');
   };
 
   const handleBackPress = () => {

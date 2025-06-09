@@ -60,6 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Нейрочат',
           headerShown: false,
+          tabBarStyle: { display: 'none' },
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),
