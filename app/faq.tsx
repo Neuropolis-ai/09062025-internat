@@ -17,6 +17,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Header } from './components/Header';
 
 // Включаем LayoutAnimation для Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -102,6 +103,9 @@ const FAQScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const rotationValues = useRef<{ [key: number]: Animated.Value }>({});
   const router = useRouter();
+
+  // Количество непрочитанных уведомлений
+  const unreadNotificationsCount = 3;
 
   // Инициализируем анимационные значения для иконок
   faqData.forEach(item => {
@@ -194,6 +198,10 @@ const FAQScreen: React.FC = () => {
     router.back();
   };
 
+  const handleNotificationsPress = () => {
+    router.push('/(tabs)/notifications');
+  };
+
   const renderFAQItem = (item: FAQItem) => {
     const isExpanded = expandedItems.has(item.id);
     const rotationValue = rotationValues.current[item.id];
@@ -230,19 +238,15 @@ const FAQScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Шапка */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>FAQ</Text>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons name="notifications" size={24} color={COLORS.white} />
-          <View style={styles.notificationBadge}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Унифицированный заголовок */}
+      <Header 
+        title="FAQ" 
+        notificationCount={unreadNotificationsCount}
+        onNotificationPress={handleNotificationsPress}
+        onBackPress={handleBackPress}
+        showBackButton={true}
+        showNotificationButton={true}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Поиск */}
@@ -311,13 +315,12 @@ const FAQScreen: React.FC = () => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             {/* Заголовок модального окна */}
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={24} color={COLORS.burgundy} />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Задать вопрос</Text>
-              <View style={styles.modalPlaceholder} />
-            </View>
+            <Header 
+              title="Задать вопрос" 
+              onBackPress={handleCloseModal}
+              showBackButton={true}
+              showNotificationButton={false}
+            />
 
             <ScrollView style={styles.modalScrollContent} showsVerticalScrollIndicator={false}>
               <View style={styles.modalBody}>
@@ -405,50 +408,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.lightGray,
-  },
-  header: {
-    backgroundColor: COLORS.burgundy,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    minHeight: 60,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.white,
-    textAlign: 'center',
-  },
-  notificationButton: {
-    position: 'relative',
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: COLORS.redNotification,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: COLORS.white,
   },
   content: {
     flex: 1,
@@ -569,29 +528,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
-  },
-  modalHeader: {
-    backgroundColor: COLORS.burgundy,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-  },
-  modalCloseButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.white,
-    textAlign: 'center',
-  },
-  modalPlaceholder: {
-    width: 40,
-    height: 40,
   },
   modalScrollContent: {
     flex: 1,
