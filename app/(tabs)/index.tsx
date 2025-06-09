@@ -57,7 +57,7 @@ export default function HomeScreen() {
           style={styles.notificationButton} 
           onPress={handleNotificationsPress}
         >
-          <Ionicons name="notifications" size={24} color="#FFFFFF" />
+          <Text style={styles.notificationEmoji}>🔔</Text>
           {/* Индикатор непрочитанных сообщений */}
           <View style={styles.notificationBadge}>
             <Text style={styles.notificationCount}>3</Text>
@@ -194,6 +194,10 @@ const styles = StyleSheet.create({
   notificationButton: {
     position: 'relative',
     padding: 8,
+  },
+  notificationEmoji: {
+    fontSize: 24,
+    color: '#FFFFFF',
   },
   notificationBadge: {
     position: 'absolute',

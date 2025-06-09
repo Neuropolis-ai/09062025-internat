@@ -61,7 +61,8 @@ export default function BankScreen() {
     }
   ]
 
-  const accountNumber = '4817 6012 3456 7890'
+  const currentAccountNumber = '1234'
+  const creditAccountNumber = '5678'
   const currentBalance = 2450
   const creditLimit = 1000
   const creditUsed = 250
@@ -89,7 +90,7 @@ export default function BankScreen() {
           style={styles.notificationButton} 
           onPress={handleNotificationPress}
         >
-          <Ionicons name="notifications" size={24} color="#FFFFFF" />
+          <Text style={styles.notificationEmoji}>🔔</Text>
           <View style={styles.notificationBadge}>
             <Text style={styles.notificationCount}>3</Text>
           </View>
@@ -107,9 +108,11 @@ export default function BankScreen() {
         <View style={styles.primaryAccountCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="card" size={24} color="#FFFFFF" />
-            <Text style={styles.primaryCardTitle}>Расчётный счёт</Text>
+            <View style={styles.cardTitleContainer}>
+              <Text style={styles.primaryCardTitle}>Расчётный счёт</Text>
+              <Text style={styles.primaryCardNumber}>№ {currentAccountNumber}</Text>
+            </View>
           </View>
-          <Text style={styles.primaryAccountNumber}>{accountNumber}</Text>
           <View style={styles.primaryBalanceContainer}>
             <Text style={styles.primaryBalanceLabel}>Доступно</Text>
             <Text style={styles.primaryBalanceAmount}>{formatAmount(currentBalance)} L-Coin</Text>
@@ -120,7 +123,11 @@ export default function BankScreen() {
         <View style={styles.creditCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="card-outline" size={24} color="#8B2439" />
-            <Text style={styles.creditCardTitle}>Кредитный счёт</Text>
+            <View style={styles.cardTitleContainer}>
+              <Text style={styles.creditCardTitle}>Кредитный счёт</Text>
+              <Text style={styles.creditCardNumber}>№ {creditAccountNumber}</Text>
+            </View>
+            <Ionicons name="warning" size={20} color="#FF8C00" style={styles.warningIcon} />
           </View>
           <View style={styles.creditInfo}>
             <View style={styles.creditRow}>
@@ -222,6 +229,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  notificationEmoji: {
+    fontSize: 20,
+    color: '#FFFFFF',
+  },
 
   // Контент
   content: {
@@ -269,19 +280,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  cardTitleContainer: {
+    flexDirection: 'column',
+    marginLeft: 12,
+    flex: 1,
+  },
   primaryCardTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginLeft: 12,
   },
-  primaryAccountNumber: {
-    fontSize: 16,
+  primaryCardNumber: {
+    fontSize: 14,
     color: '#FFFFFF',
-    opacity: 0.9,
-    marginBottom: 20,
-    letterSpacing: 1,
-    fontFamily: 'monospace',
+    opacity: 0.8,
+    marginTop: 2,
   },
   primaryBalanceContainer: {
     alignItems: 'flex-end',
@@ -298,7 +311,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 
-  // Кредитная карточка (без жёлтого восклицательного знака)
+  // Кредитная карточка
   creditCard: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
@@ -317,7 +330,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#8B2439',
-    marginLeft: 12,
+  },
+  creditCardNumber: {
+    fontSize: 14,
+    color: '#8B2439',
+    opacity: 0.8,
+    marginTop: 2,
+  },
+  warningIcon: {
+    marginLeft: 8,
   },
   creditInfo: {
     marginTop: 16,
