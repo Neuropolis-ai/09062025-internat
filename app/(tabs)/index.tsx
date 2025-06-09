@@ -15,8 +15,30 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const handleModulePress = (module: string) => {
-    // TODO: Навигация по модулям
-    console.log(`Переход к модулю: ${module}`);
+    // Навигация по модулям
+    switch (module) {
+      case 'bank':
+        router.push('/bank');
+        break;
+      case 'grades':
+        // TODO: Создать экран успеваемости
+        console.log('Переход к успеваемости');
+        break;
+      case 'contracts':
+        // TODO: Создать экран госзаказов
+        console.log('Переход к госзаказам');
+        break;
+      case 'republic':
+        // TODO: Создать экран республики
+        console.log('Переход к республике');
+        break;
+      case 'terms':
+        // TODO: Создать экран условий
+        console.log('Переход к условиям');
+        break;
+      default:
+        console.log(`Переход к модулю: ${module}`);
+    }
   };
 
   const handleNotificationsPress = () => {
