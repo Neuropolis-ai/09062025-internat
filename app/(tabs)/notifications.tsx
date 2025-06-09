@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Header } from '../components/Header';
 import { NotificationCard } from '../components/NotificationCard';
 import { NotificationModal } from '../components/NotificationModal';
@@ -72,6 +73,7 @@ const mockNotifications: Notification[] = [
 ];
 
 export default function NotificationsScreen() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -92,6 +94,10 @@ export default function NotificationsScreen() {
     }
     setSelectedNotification(notification);
     setModalVisible(true);
+  };
+
+  const handleBackPress = () => {
+    router.back();
   };
 
   const getNotificationTypeIcon = (type: string) => {
@@ -121,6 +127,7 @@ export default function NotificationsScreen() {
         title="Уведомления" 
         showBackButton={true}
         showNotificationButton={false}
+        onBackPress={handleBackPress}
         onNotificationPress={() => {}}
       />
       
