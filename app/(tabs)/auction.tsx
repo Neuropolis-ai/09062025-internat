@@ -33,6 +33,43 @@ interface BidModalProps {
   onConfirm: (amount: number, comment?: string) => void;
 }
 
+// Типы для фильтрации
+type FilterType = 'active' | 'participating';
+
+// Компонент вкладок
+const FilterTabs: React.FC<{ 
+  activeFilter: FilterType; 
+  onFilterChange: (filter: FilterType) => void;
+  participatingCount: number;
+}> = ({ activeFilter, onFilterChange, participatingCount }) => {
+  return (
+    <View style={styles.tabsContainer}>
+      <TouchableOpacity
+        style={[styles.tab, activeFilter === 'active' && styles.activeTab]}
+        onPress={() => onFilterChange('active')}
+      >
+        <Text style={[styles.tabText, activeFilter === 'active' && styles.activeTabText]}>
+          Активные
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[styles.tab, activeFilter === 'participating' && styles.activeTab]}
+        onPress={() => onFilterChange('participating')}
+      >
+        <Text style={[styles.tabText, activeFilter === 'participating' && styles.activeTabText]}>
+          Участвую
+        </Text>
+        {participatingCount > 0 && (
+          <View style={styles.tabBadge}>
+            <Text style={styles.tabBadgeText}>{participatingCount}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 // Компонент модального окна для ставки
 const BidModal: React.FC<BidModalProps> = ({ visible, item, onClose, onConfirm }) => {
   const [bidAmount, setBidAmount] = useState('');
@@ -142,12 +179,14 @@ const AuctionCard: React.FC<{ item: AuctionItem; onBid: () => void }> = ({ item,
         
         <View style={styles.itemInfo}>
           <View style={styles.itemHeader}>
-            <Text style={styles.itemTitle}>{item.title}</Text>
-            {item.userParticipating && (
-              <View style={styles.participatingBadge}>
-                <Text style={styles.participatingText}>Участвуешь</Text>
-              </View>
-            )}
+            <View style={styles.titleContainer}>
+              <Text style={styles.itemTitle} numberOfLines={2}>{item.title}</Text>
+              {item.userParticipating && (
+                <View style={styles.participatingBadge}>
+                  <Text style={styles.participatingText}>Участвуешь</Text>
+                </View>
+              )}
+            </View>
           </View>
           
           <Text style={styles.itemDescription}>{item.description}</Text>
@@ -170,10 +209,11 @@ const AuctionCard: React.FC<{ item: AuctionItem; onBid: () => void }> = ({ item,
 export default function AuctionScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<AuctionItem | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterType>('active');
   const [auctionItems, setAuctionItems] = useState<AuctionItem[]>([
     {
       id: '1',
-      title: 'Экскурсия в музей',
+      title: 'Экскурсия в музей истории и современного искусства',
       description: 'Увлекательная экскурсия в исторический музей с гидом',
       currentBid: 45,
       minIncrement: 5,
@@ -182,7 +222,7 @@ export default function AuctionScreen() {
     },
     {
       id: '2',
-      title: 'Мастер-класс по программированию',
+      title: 'Мастер-класс по программированию на Python для начинающих',
       description: 'Изучение основ Python с опытным преподавателем',
       currentBid: 75,
       minIncrement: 10,
@@ -200,7 +240,7 @@ export default function AuctionScreen() {
     },
     {
       id: '4',
-      title: 'Творческая мастерская',
+      title: 'Творческая мастерская по созданию арт-объектов и скульптур',
       description: 'Создание арт-объектов под руководством художника',
       currentBid: 60,
       minIncrement: 10,
@@ -209,7 +249,7 @@ export default function AuctionScreen() {
     },
     {
       id: '5',
-      title: 'Кулинарный мастер-класс',
+      title: 'Кулинарный мастер-класс от шеф-повара ресторана',
       description: 'Приготовление традиционных блюд с шеф-поваром',
       currentBid: 85,
       minIncrement: 15,
@@ -217,6 +257,17 @@ export default function AuctionScreen() {
       userParticipating: true,
     },
   ]);
+
+  // Фильтрация аукционов
+  const filteredItems = auctionItems.filter(item => {
+    if (activeFilter === 'participating') {
+      return item.userParticipating;
+    }
+    return true; // Показываем все активные аукционы
+  });
+
+  // Подсчет участвующих аукционов
+  const participatingCount = auctionItems.filter(item => item.userParticipating).length;
 
   const handleBidPress = (item: AuctionItem) => {
     setSelectedItem(item);
@@ -264,15 +315,36 @@ export default function AuctionScreen() {
         showNotificationButton={true}
       />
       
+      <FilterTabs 
+        activeFilter={activeFilter}
+        onFilterChange={setActiveFilter}
+        participatingCount={participatingCount}
+      />
+      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.itemsList}>
-          {auctionItems.map((item) => (
-            <AuctionCard 
-              key={item.id} 
-              item={item} 
-              onBid={() => handleBidPress(item)} 
-            />
-          ))}
+          {filteredItems.length > 0 ? (
+            filteredItems.map((item) => (
+              <AuctionCard 
+                key={item.id} 
+                item={item} 
+                onBid={() => handleBidPress(item)} 
+              />
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📭</Text>
+              <Text style={styles.emptyTitle}>
+                {activeFilter === 'participating' ? 'Вы пока не участвуете в аукционах' : 'Нет активных аукционов'}
+              </Text>
+              <Text style={styles.emptyDescription}>
+                {activeFilter === 'participating' 
+                  ? 'Перейдите на вкладку "Активные" чтобы начать участвовать в торгах'
+                  : 'Новые аукционы появятся скоро. Следите за обновлениями!'
+                }
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -296,6 +368,51 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  
+  // Стили вкладок
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    paddingHorizontal: 20,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  activeTab: {
+    borderBottomColor: '#8B2439',
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#666666',
+  },
+  activeTabText: {
+    color: '#8B2439',
+    fontWeight: '600',
+  },
+  tabBadge: {
+    backgroundColor: '#22C55E',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  tabBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  
   itemsList: {
     padding: 20,
     paddingBottom: 40,
@@ -337,23 +454,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  titleContainer: {
+    flexDirection: 'column',
+    gap: 8,
   },
   itemTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#8B2439',
-    flex: 1,
-    marginRight: 8,
+    lineHeight: 22,
   },
   participatingBadge: {
-    backgroundColor: '#8B2439',
+    backgroundColor: '#22C55E',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+    alignSelf: 'flex-start',
   },
   participatingText: {
     color: '#FFFFFF',
@@ -390,6 +508,30 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  
+  // Пустое состояние
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#8B2439',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
   },
   
   // Стили модального окна
