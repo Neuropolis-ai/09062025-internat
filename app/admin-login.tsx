@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Header } from './components/Header';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 interface AdminLoginProps {
   onLoginSuccess?: () => void;

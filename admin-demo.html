@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-портал Лицея-интерната "Подмосковный"</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #F2F2F7;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background-color: #8B2439;
+            padding: 16px 20px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+
+        .notification-button {
+            position: relative;
+            padding: 10px;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background-color: #FF4444;
+            border-radius: 9px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #8B2439;
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            padding: 24px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Login Page */
+        .login-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 80px);
+            padding: 40px 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .title-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            font-size: 18px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        .admin-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #8B2439;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666666;
+            font-weight: 500;
+        }
+
+        .form-container {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E5EA;
+        }
+
+        .input-container {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8B2439;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input {
+            width: 100%;
+            border: 2px solid #E5E5EA;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 16px;
+            background-color: #FFFFFF;
+            color: #333333;
+            min-height: 50px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input:focus {
+            border-color: #8B2439;
+        }
+
+        .login-button {
+            width: 100%;
+            background-color: #8B2439;
+            border-radius: 12px;
+            padding: 16px;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            box-shadow: 0 4px 8px rgba(139, 36, 57, 0.3);
+            transition: all 0.3s;
+        }
+
+        .login-button:hover {
+            background-color: #7A1F32;
+            transform: translateY(-2px);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 16px;
+            padding: 8px;
+        }
+
+        .forgot-password a {
+            color: #8B2439;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #E8F5E8;
+            padding: 6px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            gap: 6px;
+        }
+
+        .security-text {
+            font-size: 12px;
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .footer-text {
+            font-size: 14px;
+            color: #8B2439;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666666;
+            text-align: center;
+            line-height: 18px;
+        }
+
+        /* Panel Page */
+        .panel-page {
+            display: none;
+        }
+
+        .panel-page.active {
+            display: block;
+        }
+
+        .welcome-container {
+            text-align: center;
+            margin-bottom: 32px;
+            padding: 16px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            flex: 1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E5EA;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #8B2439;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #8B2439;
+            margin-bottom: 16px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .module-card {
+            background-color: #FFFFFF;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #E5E5EA;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .module-card.selected {
+            border-color: #8B2439;
+            border-width: 2px;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .module-icon-container {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            background-color: #F8F8F8;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .module-icon {
+            font-size: 24px;
+        }
+
+        .module-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background-color: #FF4444;
+            border-radius: 10px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #FFFFFF;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .module-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8B2439;
+            margin-bottom: 4px;
+        }
+
+        .module-description {
+            font-size: 14px;
+            color: #666666;
+            line-height: 20px;
+        }
+
+        .logout-button {
+            width: 100%;
+            background-color: #FF4444;
+            border-radius: 12px;
+            padding: 16px;
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 16px;
+            box-shadow: 0 4px 8px rgba(255, 68, 68, 0.3);
+            transition: all 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: #E63939;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .login-container {
+                max-width: 500px;
+            }
+
+            .form-container {
+                padding: 32px;
+            }
+
+            .admin-title {
+                font-size: 32px;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .modules-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Page switcher */
+        .page-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #8B2439;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(139, 36, 57, 0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .page-switcher:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(139, 36, 57, 0.4);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-page">
+        <header class="header">
+            <div style="width: 40px;"></div>
+            <h1 class="header-title">Вход в личный кабинет</h1>
+            <div style="width: 40px;"></div>
+        </header>
+
+        <div class="login-container">
+            <div class="title-container">
+                <div class="welcome-title">Добро пожаловать в</div>
+                <div class="admin-title">Админ-портал</div>
+                <div class="subtitle">Лицей-интернат "Подмосковный"</div>
+            </div>
+
+            <div class="form-container">
+                <div class="input-container">
+                    <label class="input-label">Email</label>
+                    <input type="email" class="input" placeholder="Введите ваш email" id="emailInput">
+                </div>
+
+                <div class="input-container">
+                    <label class="input-label">Пароль</label>
+                    <input type="password" class="input" placeholder="Введите пароль" id="passwordInput">
+                </div>
+
+                <div class="input-container">
+                    <label class="input-label">Повторите пароль</label>
+                    <input type="password" class="input" placeholder="Повторите пароль" id="confirmPasswordInput">
+                </div>
+
+                <button class="login-button" onclick="handleLogin()">Войти</button>
+
+                <div class="forgot-password">
+                    <a href="#" onclick="alert('Обратитесь к системному администратору для восстановления доступа')">Забыли пароль?</a>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <div class="security-badge">
+                    <span>🔒</span>
+                    <span class="security-text">Защищенное соединение</span>
+                </div>
+                
+                <div class="footer-text">Только для администраторов лицея</div>
+                <div class="help-text">При возникновении проблем обратитесь к системному администратору</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Page -->
+    <div id="panelPage" class="panel-page">
+        <header class="header">
+            <div style="width: 40px;"></div>
+            <h1 class="header-title">Админ-панель</h1>
+            <button class="notification-button">
+                <span class="notification-icon">🔔</span>
+                <span class="notification-badge">19</span>
+            </button>
+        </header>
+
+        <div class="container">
+            <div class="welcome-container">
+                <div style="font-size: 16px; color: #666666; margin-bottom: 4px;">Добро пожаловать в</div>
+                <div style="font-size: 24px; font-weight: bold; color: #8B2439; margin-bottom: 4px;">Админ-панель</div>
+                <div style="font-size: 14px; color: #666666; font-weight: 500;">Лицей-интернат "Подмосковный"</div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-number">1,247</div>
+                    <div class="stat-label">Пользователей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">89</div>
+                    <div class="stat-label">Активных</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Новых</div>
+                </div>
+            </div>
+
+            <div class="section-title">Модули управления</div>
+            
+            <div class="modules-grid">
+                <div class="module-card" onclick="handleModuleClick('users', 'Управление пользователями')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">👥</span>
+                            <span class="module-badge">5</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Управление пользователями</div>
+                    <div class="module-description">Добавление, редактирование и удаление пользователей</div>
+                </div>
+
+                <div class="module-card" onclick="handleModuleClick('content', 'Управление контентом')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">📝</span>
+                            <span class="module-badge">2</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Управление контентом</div>
+                    <div class="module-description">Редактирование материалов и новостей</div>
+                </div>
+
+                <div class="module-card" onclick="handleModuleClick('notifications', 'Уведомления')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">🔔</span>
+                            <span class="module-badge">12</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Уведомления</div>
+                    <div class="module-description">Отправка уведомлений и сообщений</div>
+                </div>
+
+                <div class="module-card" onclick="handleModuleClick('analytics', 'Аналитика')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">📊</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Аналитика</div>
+                    <div class="module-description">Статистика и отчеты по использованию</div>
+                </div>
+
+                <div class="module-card" onclick="handleModuleClick('settings', 'Настройки системы')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">⚙️</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Настройки системы</div>
+                    <div class="module-description">Конфигурация приложения и параметры</div>
+                </div>
+
+                <div class="module-card" onclick="handleModuleClick('backup', 'Резервное копирование')">
+                    <div class="module-header">
+                        <div class="module-icon-container">
+                            <span class="module-icon">💾</span>
+                        </div>
+                    </div>
+                    <div class="module-title">Резервное копирование</div>
+                    <div class="module-description">Создание и восстановление резервных копий</div>
+                </div>
+            </div>
+
+            <button class="logout-button" onclick="handleLogout()">Выйти из системы</button>
+        </div>
+    </div>
+
+    <!-- Page Switcher -->
+    <button class="page-switcher" onclick="togglePage()" id="pageSwitcher">
+        К панели управления
+    </button>
+
+    <script>
+        let currentPage = 'login';
+
+        function handleLogin() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+            if (!email || !password || !confirmPassword) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Пароли не совпадают');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Пароль должен содержать минимум 6 символов');
+                return;
+            }
+
+            // Симуляция загрузки
+            const button = document.querySelector('.login-button');
+            button.textContent = 'Выполняется вход...';
+            button.disabled = true;
+
+            setTimeout(() => {
+                alert('Вход в админ-портал выполнен успешно!');
+                showPanel();
+                button.textContent = 'Войти';
+                button.disabled = false;
+            }, 1500);
+        }
+
+        function handleModuleClick(moduleId, title) {
+            // Убираем выделение с других карточек
+            document.querySelectorAll('.module-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Добавляем выделение к текущей карточке
+            event.currentTarget.classList.add('selected');
+            
+            if (confirm(`Открыть модуль "${title}"?`)) {
+                console.log(`Открытие модуля: ${moduleId}`);
+                alert(`Модуль "${title}" будет реализован в следующих версиях`);
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Вы уверены, что хотите выйти из админ-панели?')) {
+                showLogin();
+                // Очищаем форму
+                document.getElementById('emailInput').value = '';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+            }
+        }
+
+        function showLogin() {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('panelPage').style.display = 'none';
+            document.getElementById('pageSwitcher').textContent = 'К панели управления';
+            currentPage = 'login';
+        }
+
+        function showPanel() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('panelPage').style.display = 'block';
+            document.getElementById('pageSwitcher').textContent = 'К авторизации';
+            currentPage = 'panel';
+        }
+
+        function togglePage() {
+            if (currentPage === 'login') {
+                showPanel();
+            } else {
+                showLogin();
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            showLogin();
+        });
+
+        // Обработка Enter в полях ввода
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && currentPage === 'login') {
+                handleLogin();
+            }
+        });
+    </script>
+</body>
+</html> 
