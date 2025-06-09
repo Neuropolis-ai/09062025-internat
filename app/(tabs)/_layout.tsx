@@ -1,4 +1,3 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -6,7 +5,7 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
+        tabBarActiveTintColor: '#8B2439',
         tabBarInactiveTintColor: '#666666',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -29,29 +28,29 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="bank"
+        name="shop"
         options={{
-          title: 'Банк',
+          title: 'L-shop',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card" size={size} color={color} />
+            <Ionicons name="storefront" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="grades"
+        name="auction"
         options={{
-          title: 'Оценки',
+          title: 'Аукцион',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="school" size={size} color={color} />
+            <Ionicons name="hammer" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="chat"
         options={{
-          title: 'Профиль',
+          title: 'Нейрочат',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+            <Ionicons name="chatbubbles" size={size} color={color} />
           ),
         }}
       />

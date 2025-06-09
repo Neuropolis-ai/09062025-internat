@@ -5,8 +5,8 @@ import {
   ActivityIndicator,
   View,
   Platform,
+  StyleSheet,
 } from 'react-native'
-import { createStyleSheet, useStyles } from 'react-native-unistyles'
 
 interface ButtonProps {
   variant: 'primary' | 'secondary' | 'ghost'
@@ -31,8 +31,6 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   testID,
 }) => {
-  const { styles } = useStyles(stylesheet)
-
   const handlePress = (): void => {
     if (!disabled && !loading) {
       // Haptic feedback для iOS
@@ -51,8 +49,8 @@ export const Button: React.FC<ButtonProps> = ({
             size="small"
             color={
               variant === 'primary'
-                ? styles.primaryText.color
-                : styles.secondaryText.color
+                ? '#FFFFFF'
+                : '#FFFFFF'
             }
           />
           <Text style={[styles.text, styles[`${variant}Text`], styles[size]]}>
@@ -95,44 +93,48 @@ export const Button: React.FC<ButtonProps> = ({
   )
 }
 
-const stylesheet = createStyleSheet((theme) => ({
+const styles = StyleSheet.create({
   button: {
-    borderRadius: theme.borderRadius.md,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    ...theme.shadows.small,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   
   // Variants
   primary: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: '#8B2439',
   },
   secondary: {
-    backgroundColor: theme.colors.secondary,
+    backgroundColor: '#4D8061',
   },
   ghost: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: theme.colors.primary,
+    borderColor: '#8B2439',
     shadowOpacity: 0,
     elevation: 0,
   },
   
   // Sizes
   smallButton: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     minHeight: 36,
   },
   mediumButton: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     minHeight: 44,
   },
   largeButton: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
     minHeight: 52,
   },
   
@@ -142,27 +144,27 @@ const stylesheet = createStyleSheet((theme) => ({
     textAlign: 'center',
   },
   primaryText: {
-    color: theme.colors.white,
+    color: '#FFFFFF',
   },
   secondaryText: {
-    color: theme.colors.white,
+    color: '#FFFFFF',
   },
   ghostText: {
-    color: theme.colors.primary,
+    color: '#8B2439',
   },
   
   // Text sizes
   small: {
-    fontSize: theme.typography.sizes.bodySmall,
-    lineHeight: theme.typography.lineHeights.bodySmall,
+    fontSize: 14,
+    lineHeight: 20,
   },
   medium: {
-    fontSize: theme.typography.sizes.body,
-    lineHeight: theme.typography.lineHeights.body,
+    fontSize: 16,
+    lineHeight: 24,
   },
   large: {
-    fontSize: theme.typography.sizes.h5,
-    lineHeight: theme.typography.lineHeights.h5,
+    fontSize: 18,
+    lineHeight: 28,
   },
   
   // States
@@ -180,12 +182,12 @@ const stylesheet = createStyleSheet((theme) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.sm,
+    gap: 8,
   },
   iconLeft: {
-    marginRight: theme.spacing.sm,
+    marginRight: 8,
   },
   iconRight: {
-    marginLeft: theme.spacing.sm,
+    marginLeft: 8,
   },
-})) 
+}) 
