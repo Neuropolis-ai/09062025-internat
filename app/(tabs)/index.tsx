@@ -34,8 +34,8 @@ export default function HomeScreen() {
         router.push('/respublika');
         break;
       case 'terms':
-        // TODO: Создать экран условий
-        console.log('Переход к условиям');
+        // Переход к странице правил
+        router.push('/pravila');
         break;
       default:
         console.log(`Переход к модулю: ${module}`);
