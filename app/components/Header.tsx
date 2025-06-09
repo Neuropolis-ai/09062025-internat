@@ -36,6 +36,18 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <View style={styles.header}>
+      {/* Кнопка назад */}
+      {showBackButton ? (
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={handleBackPress}
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.leftSpacer} />
+      )}
+      
       <Text style={styles.headerTitle}>{title}</Text>
       
       {showNotificationButton && (
@@ -51,6 +63,8 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </TouchableOpacity>
       )}
+      
+      {!showNotificationButton && <View style={styles.rightSpacer} />}
     </View>
   );
 };
@@ -63,8 +77,26 @@ const styles = StyleSheet.create({
     height: 80,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+  },
+  backArrow: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  leftSpacer: {
+    width: 40,
+  },
+  rightSpacer: {
+    width: 40,
   },
   headerTitle: {
     fontSize: 18,
@@ -74,8 +106,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   notificationButton: {
-    position: 'absolute',
-    right: 20,
+    position: 'relative',
     padding: 10,
     width: 40,
     alignItems: 'center',
