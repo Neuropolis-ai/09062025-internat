@@ -190,9 +190,16 @@ export default function UspevamostScreen() {
                   hideYAxisText={false}
                   yAxisLabelWidth={25}
                   yAxisLabelSuffix=""
+                  showFractionalValues={false}
+                  roundToDigits={0}
+                  mostNegativeValue={2}
                   yAxisColor="#E0E0E0"
                   xAxisColor="#E0E0E0"
                   yAxisThickness={1}
+                  formatYLabel={(label) => {
+                    const num = parseInt(label);
+                    return num >= 2 && num <= 5 ? num.toString() : '';
+                  }}
                   xAxisLabelTextStyle={{
                     color: '#666', 
                     fontSize: 10,
