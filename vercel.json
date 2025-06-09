@@ -3,16 +3,7 @@
   "version": 2,
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
-  "functions": {
-    "demo_server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/demo_server.js"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
