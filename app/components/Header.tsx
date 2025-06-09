@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
   title: string;
@@ -57,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
           style={styles.notificationButton} 
           onPress={handleNotificationPress}
         >
-          <Ionicons name="notifications" size={22} color="#FFD700" />
+          <Text style={styles.notificationIcon}>🔔</Text>
           {notificationCount > 0 && (
             <View style={styles.notificationBadge}>
               <Text style={styles.notificationCount}>{notificationCount}</Text>
@@ -112,6 +111,13 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 40,
     alignItems: 'center',
+  },
+  notificationIcon: {
+    fontSize: 24,
+    color: '#FFD700',
+    textShadowColor: 'rgba(255, 215, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   notificationBadge: {
     position: 'absolute',

@@ -14,6 +14,9 @@ import { Header } from './components/Header';
 export default function RespublikaScreen() {
   const router = useRouter();
 
+  // Количество непрочитанных уведомлений
+  const unreadNotificationsCount = 3;
+
   const handleBackPress = () => {
     router.back();
   };
@@ -90,9 +93,10 @@ export default function RespublikaScreen() {
       {/* Шапка с заголовком и уведомлениями */}
       <Header 
         title="Лицейская республика" 
-        showBackButton={false}
+        showBackButton={true}
+        onBackPress={handleBackPress}
         onNotificationPress={handleNotificationsPress}
-        notificationCount={5}
+        notificationCount={unreadNotificationsCount}
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

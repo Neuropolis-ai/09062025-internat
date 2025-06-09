@@ -15,6 +15,9 @@ import { Header } from '../components/Header';
 export default function HomeScreen() {
   const router = useRouter();
 
+  // Количество непрочитанных уведомлений (в реальном приложении будет из состояния/API)
+  const unreadNotificationsCount = 3;
+
   const handleModulePress = (module: string) => {
     // Навигация по модулям
     switch (module) {
@@ -50,7 +53,7 @@ export default function HomeScreen() {
       {/* Унифицированный хедер */}
       <Header 
         title='Лицей-интернат "Подмосковный"' 
-        notificationCount={3}
+        notificationCount={unreadNotificationsCount}
         onNotificationPress={handleNotificationsPress}
       />
 

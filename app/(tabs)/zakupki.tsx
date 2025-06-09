@@ -35,11 +35,13 @@ interface Contract {
 
 export default function ZakupkiScreen() {
   const router = useRouter();
+  // Количество непрочитанных уведомлений
+  const unreadNotificationsCount = 3;
+  
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [bid, setBid] = useState('');
   const [comment, setComment] = useState('');
-  const [notificationCount] = useState(3);
 
   // Моковые данные для доски контрактов
   const availableTasks: Task[] = [
@@ -192,7 +194,7 @@ export default function ZakupkiScreen() {
       {/* Унифицированный хедер */}
       <Header 
         title="Госзакупки" 
-        notificationCount={notificationCount}
+        notificationCount={unreadNotificationsCount}
         onNotificationPress={handleNotificationPress}
         onBackPress={handleBackPress}
         showBackButton={true}

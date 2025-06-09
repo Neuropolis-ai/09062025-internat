@@ -25,6 +25,9 @@ interface Achievement {
 }
 
 export default function UspevamostScreen() {
+  // Количество непрочитанных уведомлений
+  const unreadNotificationsCount = 3;
+
   const [achievements, setAchievements] = useState<Achievement[]>([
     {
       id: '1',
@@ -117,7 +120,7 @@ export default function UspevamostScreen() {
       <View style={styles.container}>
         <Header 
           title="Успеваемость" 
-          notificationCount={3}
+          notificationCount={unreadNotificationsCount}
           onNotificationPress={handleNotificationPress}
           onBackPress={handleBackPress}
           showBackButton={true}

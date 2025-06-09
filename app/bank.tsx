@@ -16,6 +16,9 @@ interface Transaction {
 }
 
 export default function BankScreen() {
+  // Количество непрочитанных уведомлений
+  const unreadNotificationsCount = 3;
+
   const transactions: Transaction[] = [
     {
       id: '1',
@@ -95,6 +98,7 @@ export default function BankScreen() {
         {/* Унифицированный хедер */}
         <Header 
           title="Лицейский банк" 
+          notificationCount={unreadNotificationsCount}
           onNotificationPress={handleNotificationPress}
           onBackPress={handleBackPress}
           showBackButton={true}
