@@ -5,12 +5,16 @@ interface HeaderProps {
   title: string;
   notificationCount?: number;
   onNotificationPress?: () => void;
+  onBackPress?: () => void;
+  showBackButton?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   title, 
   notificationCount = 3, 
-  onNotificationPress 
+  onNotificationPress,
+  onBackPress,
+  showBackButton = true
 }) => {
   const handleNotificationPress = () => {
     if (onNotificationPress) {
@@ -20,10 +24,27 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      console.log('Назад');
+    }
+  };
+
   return (
     <View style={styles.header}>
-      {/* Левый отступ для центрирования текста */}
-      <View style={styles.leftSpacer} />
+      {/* Кнопка назад */}
+      {showBackButton ? (
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={handleBackPress}
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.leftSpacer} />
+      )}
       
       <Text style={styles.headerTitle}>{title}</Text>
       
@@ -45,14 +66,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B2439',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 50,
-    height: 100, // Унифицированная высота хедера
+    height: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    fontSize: 20,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
   leftSpacer: {
-    width: 40, // Ширина иконки справа для центрирования
+    width: 40,
   },
   headerTitle: {
     fontSize: 18,
@@ -63,30 +96,30 @@ const styles = StyleSheet.create({
   },
   notificationButton: {
     position: 'relative',
-    padding: 10, // Увеличенный padding для лучшего позиционирования
-    width: 40, // Фиксированная ширина
+    padding: 10,
+    width: 40,
     alignItems: 'center',
   },
   notificationEmoji: {
-    fontSize: 20, // Уменьшенный размер колокольчика
+    fontSize: 20,
     color: '#FFFFFF',
   },
   notificationBadge: {
     position: 'absolute',
-    top: 2, // Сдвинуто выше
-    right: 2, // Сдвинуто правее
+    top: 2,
+    right: 2,
     backgroundColor: '#FF4444',
-    borderRadius: 9, // Немного меньший радиус
-    minWidth: 18, // Уменьшенная ширина
-    height: 18, // Уменьшенная высота
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1, // Белая обводка для лучшего контраста
+    borderWidth: 1,
     borderColor: '#8B2439',
   },
   notificationCount: {
     color: '#FFFFFF',
-    fontSize: 11, // Немного меньший шрифт
+    fontSize: 11,
     fontWeight: 'bold',
   },
 }); 

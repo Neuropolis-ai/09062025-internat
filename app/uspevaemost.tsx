@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-  Modal,
+  StyleSheet,
   Alert,
+  Modal,
+  Dimensions,
+  StatusBar,
 } from 'react-native';
-import { Header } from './components/Header';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart } from 'react-native-gifted-charts';
+import { Header } from './components/Header';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
@@ -39,20 +41,22 @@ export default function UspevamostScreen() {
   ]);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [currentGrade] = useState(4.75);
 
-  // Данные для графика оценок (от 2.00 до 5.00)
+  // Данные для полного учебного года (сентябрь - июнь)
   const gradeData = [
-    { value: 4.2, label: 'Сен', dataPointText: '4.2' },
-    { value: 4.4, label: 'Окт', dataPointText: '4.4' },
-    { value: 4.6, label: 'Ноя', dataPointText: '4.6' },
-    { value: 4.3, label: 'Дек', dataPointText: '4.3' },
-    { value: 4.7, label: 'Янв', dataPointText: '4.7' },
-    { value: 4.8, label: 'Фев', dataPointText: '4.8' },
+    { value: 4.1, label: 'Сен' },
+    { value: 4.2, label: 'Окт' },
+    { value: 4.4, label: 'Ноя' },
+    { value: 4.3, label: 'Дек' },
+    { value: 4.6, label: 'Янв' },
+    { value: 4.7, label: 'Фев' },
+    { value: 4.8, label: 'Мар' },
+    { value: 4.5, label: 'Апр' },
+    { value: 4.9, label: 'Май' },
+    { value: 4.8, label: 'Июн' },
   ];
 
-  const currentGrade = 4.8;
-  const maxGrade = 5.0;
-  
   // Мотивирующие фразы
   const motivationalPhrases = [
     "Великолепные результаты! 🌟",
@@ -103,255 +107,208 @@ export default function UspevamostScreen() {
     console.log('Переход к уведомлениям');
   };
 
+  const handleBackPress = () => {
+    router.back();
+  };
+
   return (
-    <View style={styles.container}>
-      <Header 
-        title="Успеваемость" 
-        notificationCount={3}
-        onNotificationPress={handleNotificationPress}
-      />
-      
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Современный блок текущей оценки */}
-        <View style={styles.modernCard}>
-          <View style={styles.gradeHeader}>
-            <View style={styles.gradeCircle}>
-              <Text style={styles.gradeValue}>{currentGrade.toFixed(1)}</Text>
-              <Text style={styles.gradeMaxValue}>/{maxGrade}</Text>
+    <>
+      <StatusBar barStyle="light-content" backgroundColor="#8B2439" />
+      <View style={styles.container}>
+        <Header 
+          title="Успеваемость" 
+          notificationCount={3}
+          onNotificationPress={handleNotificationPress}
+          onBackPress={handleBackPress}
+          showBackButton={true}
+        />
+        
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Текущий рейтинг */}
+          <View style={styles.ratingCard}>
+            <View style={styles.ratingHeader}>
+              <Ionicons name="trophy" size={28} color="#8B2439" />
+              <Text style={styles.ratingTitle}>Текущий рейтинг</Text>
             </View>
-            <View style={styles.gradeInfo}>
-              <Text style={styles.gradeTitle}>Средний балл</Text>
-              <Text style={[styles.motivationalText, { color: getGradeColor(currentGrade) }]}>
+            <Text style={styles.ratingValue}>{currentGrade.toFixed(2)}</Text>
+            <Text style={styles.ratingLabel}>Средняя оценка</Text>
+            
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { 
+                      width: `${((currentGrade - 2) / 3) * 100}%`,
+                      backgroundColor: getGradeColor(currentGrade)
+                    }
+                  ]} 
+                />
+              </View>
+              <Text style={styles.progressText}>
                 {getMotivationalPhrase(currentGrade)}
               </Text>
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBarBackground}>
-                  <View 
-                    style={[
-                      styles.progressBarFill, 
-                      { 
-                        width: `${((currentGrade - 3.5) / (maxGrade - 3.5)) * 100}%`,
-                        backgroundColor: getGradeColor(currentGrade)
-                      }
-                    ]} 
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {Math.round(((currentGrade - 3.5) / (maxGrade - 3.5)) * 100)}% от отличного результата
+            </View>
+          </View>
+
+          {/* График динамики с горизонтальным скроллом */}
+          <View style={styles.chartCard}>
+            <View style={styles.chartHeader}>
+              <Text style={styles.chartTitle}>Динамика оценок</Text>
+              <View style={styles.yearBadge}>
+                <Text style={styles.chartSubtitle}>Учебный год 2024/25</Text>
+              </View>
+            </View>
+            
+            <View style={styles.chartContainer}>
+              {/* Фиксированная ось Y */}
+              <View style={styles.yAxisContainer}>
+                <Text style={styles.yAxisLabel}>5</Text>
+                <Text style={styles.yAxisLabel}>4</Text>
+                <Text style={styles.yAxisLabel}>3</Text>
+                <Text style={styles.yAxisLabel}>2</Text>
+              </View>
+              
+              {/* Скроллируемый график */}
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={true}
+                style={styles.chartScrollContainer}
+              >
+                <LineChart
+                  data={gradeData}
+                  width={Math.max(width - 100, gradeData.length * 35)}
+                  height={160}
+                  spacing={35}
+                  textShiftY={12}
+                  textShiftX={-8}
+                  textFontSize={10}
+                  textColor="#666"
+                  color="#4CAF50"
+                  thickness={3}
+                  startFillColor="rgba(76, 175, 80, 0.3)"
+                  endFillColor="rgba(76, 175, 80, 0.05)"
+                  startOpacity={0.9}
+                  endOpacity={0.2}
+                  initialSpacing={20}
+                  noOfSections={3}
+                  maxValue={5}
+                  hideYAxisText={true}
+                  yAxisColor="transparent"
+                  xAxisColor="#E0E0E0"
+                  yAxisThickness={0}
+                  xAxisLabelTextStyle={{
+                    color: '#666', 
+                    fontSize: 10,
+                  }}
+                  focusEnabled
+                  showTextOnFocus
+                  showStripOnFocus
+                  stripColor="#8B2439"
+                  stripOpacity={0.5}
+                  stripWidth={2}
+                  showDataPointOnFocus
+                  dataPointsColor="#4CAF50"
+                  dataPointsRadius={4}
+                  hideDataPoints={false}
+                />
+              </ScrollView>
+            </View>
+          </View>
+
+          {/* Современный блок достижений */}
+          <View style={styles.modernCard}>
+            <View style={styles.achievementsHeaderModern}>
+              <View>
+                <Text style={styles.achievementsTitle}>Достижения</Text>
+                <Text style={styles.achievementsSubtitle}>
+                  Дипломы и сертификаты
                 </Text>
               </View>
+              <TouchableOpacity 
+                style={styles.modernUploadButton}
+                onPress={() => setShowUploadModal(true)}
+              >
+                <Ionicons name="add" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
-          </View>
-        </View>
-
-        {/* Современный график динамики оценок */}
-        <View style={styles.modernCard}>
-          <View style={styles.chartHeader}>
-            <Text style={styles.chartTitle}>Динамика оценок</Text>
-            <View style={styles.chartPeriod}>
-              <Text style={styles.chartPeriodText}>Учебный год 2024/25</Text>
-            </View>
-          </View>
-          
-          <View style={styles.chartContainer}>
-            <LineChart
-              data={gradeData}
-              width={width - 80}
-              height={200}
-              spacing={40}
-              initialSpacing={20}
-              endSpacing={20}
-              
-              // Настройки осей
-              showVerticalLines
-              verticalLinesColor="#E8E8E8"
-              rulesColor="#E8E8E8"
-              rulesType="solid"
-              xAxisColor="#E8E8E8"
-              yAxisColor="#E8E8E8"
-              xAxisThickness={1}
-              yAxisThickness={1}
-              
-              // Настройки Y-оси для компактного диапазона оценок от 3.5 до 5.0
-              yAxisOffset={0}
-              maxValue={5.0}
-              mostNegativeValue={3.5}
-              noOfSections={3}
-              stepValue={0.5}
-              yAxisLabelTexts={['3.5', '4.0', '4.5', '5.0']}
-              yAxisTextStyle={styles.yAxisText}
-              yAxisLabelPrefix=""
-              yAxisLabelSuffix=""
-              formatYLabel={(label) => parseFloat(label).toFixed(1)}
-              
-              // Настройки X-оси
-              xAxisLabelTextStyle={styles.xAxisText}
-              
-              // Настройки линии
-              color={getGradeColor(currentGrade)}
-              thickness={3}
-              curved
-              curvature={0.2}
-              
-              // Настройки точек данных
-              dataPointsColor={getGradeColor(currentGrade)}
-              dataPointsRadius={6}
-              dataPointsWidth={12}
-              dataPointsHeight={12}
-              hideDataPoints={false}
-              
-              // Отображение значений на точках с округлением до десятых
-              showValuesAsDataPointsText
-              textColor="#333"
-              textFontSize={12}
-              textShiftY={-15}
-              
-              // Анимация
-              isAnimated
-              animationDuration={1500}
-              
-              // Градиент под линией
-              areaChart
-              startFillColor={getGradeColor(currentGrade)}
-              endFillColor={getGradeColor(currentGrade)}
-              startOpacity={0.3}
-              endOpacity={0.1}
-              
-              // Интерактивность
-              pointerConfig={{
-                pointerStripHeight: 160,
-                pointerStripColor: '#8B2439',
-                pointerStripWidth: 2,
-                pointerColor: '#8B2439',
-                radius: 8,
-                pointerLabelComponent: (items: any) => {
-                  return (
-                    <View style={styles.pointerLabel}>
-                      <Text style={styles.pointerLabelText}>
-                        {items[0]?.value?.toFixed(1)}
-                      </Text>
-                      <Text style={styles.pointerLabelDate}>
-                        {items[0]?.label}
-                      </Text>
+            
+            <View style={styles.achievementsGrid}>
+              {achievements.map((achievement) => (
+                <View key={achievement.id} style={styles.modernAchievementCard}>
+                  <View style={styles.achievementIconContainer}>
+                    <View style={styles.achievementIconCircle}>
+                      <Ionicons 
+                        name={achievement.type === 'pdf' ? 'document-text' : 'image'} 
+                        size={20} 
+                        color="#8B2439" 
+                      />
                     </View>
-                  );
-                },
-              }}
-            />
-          </View>
-          
-          {/* Статистика */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>+0.6</Text>
-              <Text style={styles.statLabel}>Рост за год</Text>
-              <View style={[styles.statIndicator, { backgroundColor: '#4CAF50' }]} />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>4.5</Text>
-              <Text style={styles.statLabel}>Средняя за год</Text>
-              <View style={[styles.statIndicator, { backgroundColor: '#2196F3' }]} />
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>4.8</Text>
-              <Text style={styles.statLabel}>Лучший результат</Text>
-              <View style={[styles.statIndicator, { backgroundColor: '#FF9800' }]} />
-            </View>
-          </View>
-        </View>
-
-        {/* Современный блок достижений */}
-        <View style={styles.modernCard}>
-          <View style={styles.achievementsHeaderModern}>
-            <View>
-              <Text style={styles.achievementsTitle}>Достижения</Text>
-              <Text style={styles.achievementsSubtitle}>
-                Дипломы и сертификаты
-              </Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.modernUploadButton}
-              onPress={() => setShowUploadModal(true)}
-            >
-              <Ionicons name="add" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.achievementsGrid}>
-            {achievements.map((achievement) => (
-              <View key={achievement.id} style={styles.modernAchievementCard}>
-                <View style={styles.achievementIconContainer}>
-                  <View style={styles.achievementIconCircle}>
-                    <Ionicons 
-                      name={achievement.type === 'pdf' ? 'document-text' : 'image'} 
-                      size={20} 
-                      color="#8B2439" 
-                    />
                   </View>
+                  <View style={styles.achievementContent}>
+                    <Text style={styles.achievementTitleModern} numberOfLines={2}>
+                      {achievement.title}
+                    </Text>
+                    <Text style={styles.achievementDateModern}>
+                      {new Date(achievement.date).toLocaleDateString('ru-RU')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.achievementViewButton}>
+                    <Ionicons name="eye" size={16} color="#666666" />
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.achievementContent}>
-                  <Text style={styles.achievementTitleModern} numberOfLines={2}>
-                    {achievement.title}
-                  </Text>
-                  <Text style={styles.achievementDateModern}>
-                    {new Date(achievement.date).toLocaleDateString('ru-RU')}
-                  </Text>
-                </View>
-                <TouchableOpacity style={styles.achievementViewButton}>
-                  <Ionicons name="eye" size={16} color="#666666" />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+
+        {/* Современное модальное окно */}
+        <Modal
+          visible={showUploadModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowUploadModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modernModalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitleModern}>Загрузить документ</Text>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setShowUploadModal(false)}
+                >
+                  <Ionicons name="close" size={24} color="#666666" />
                 </TouchableOpacity>
               </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
-
-      {/* Современное модальное окно */}
-      <Modal
-        visible={showUploadModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowUploadModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modernModalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitleModern}>Загрузить документ</Text>
-              <TouchableOpacity 
-                style={styles.closeButton}
-                onPress={() => setShowUploadModal(false)}
-              >
-                <Ionicons name="close" size={24} color="#666666" />
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={styles.modalDescriptionModern}>
-              Выберите тип файла для загрузки диплома или сертификата
-            </Text>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.modalOptionButton}
-                onPress={() => uploadFile('pdf')}
-              >
-                <Ionicons name="document-text" size={24} color="#8B2439" />
-                <Text style={styles.modalOptionText}>PDF документ</Text>
-              </TouchableOpacity>
               
-              <TouchableOpacity 
-                style={styles.modalOptionButton}
-                onPress={() => uploadFile('image')}
-              >
-                <Ionicons name="image" size={24} color="#8B2439" />
-                <Text style={styles.modalOptionText}>Изображение</Text>
-              </TouchableOpacity>
+              <Text style={styles.modalDescriptionModern}>
+                Выберите тип файла для загрузки диплома или сертификата
+              </Text>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={styles.modalOptionButton}
+                  onPress={() => uploadFile('pdf')}
+                >
+                  <Ionicons name="document-text" size={24} color="#8B2439" />
+                  <Text style={styles.modalOptionText}>PDF документ</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.modalOptionButton}
+                  onPress={() => uploadFile('image')}
+                >
+                  <Ionicons name="image" size={24} color="#8B2439" />
+                  <Text style={styles.modalOptionText}>Изображение</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </>
   );
 }
 
@@ -383,55 +340,51 @@ const styles = StyleSheet.create({
   },
   
   // Блок оценки
-  gradeHeader: {
+  ratingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  ratingHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  gradeCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#F8F4F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#8B2439',
-    marginRight: 20,
+  ratingTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginLeft: 10,
   },
-  gradeValue: {
+  ratingValue: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#8B2439',
-  },
-  gradeMaxValue: {
-    fontSize: 16,
-    color: '#666666',
-    marginTop: -5,
-  },
-  gradeInfo: {
-    flex: 1,
-  },
-  gradeTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333333',
     marginBottom: 8,
   },
-  motivationalText: {
+  ratingLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 12,
+    color: '#666666',
   },
   progressContainer: {
     marginTop: 8,
   },
-  progressBarBackground: {
+  progressBar: {
     height: 8,
     backgroundColor: '#E8E8E8',
     borderRadius: 4,
     overflow: 'hidden',
   },
-  progressBarFill: {
+  progressFill: {
     height: '100%',
     borderRadius: 4,
   },
@@ -442,92 +395,55 @@ const styles = StyleSheet.create({
   },
   
   // График
+  chartCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+  },
   chartHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
   chartTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#333333',
+    flex: 1,
   },
-  chartPeriod: {
+  yearBadge: {
     backgroundColor: '#F0F2F5',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
+    alignSelf: 'flex-start',
   },
-  chartPeriodText: {
+  chartSubtitle: {
     fontSize: 12,
     color: '#666666',
     fontWeight: '500',
   },
-  chartContainer: {
-    alignItems: 'center',
-    marginVertical: 10,
+  labelContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 4,
+    borderRadius: 4,
+    marginTop: -20,
+    marginLeft: -10,
   },
-  yAxisText: {
+  labelText: {
     fontSize: 12,
-    color: '#666666',
-    fontWeight: '500',
-  },
-  xAxisText: {
-    fontSize: 12,
-    color: '#666666',
-    fontWeight: '500',
-  },
-  pointerLabel: {
-    backgroundColor: '#333333',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: -40,
-  },
-  pointerLabelText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  pointerLabelDate: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  
-  // Статистика
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  statItem: {
-    alignItems: 'center',
-    position: 'relative',
-  },
-  statValue: {
-    fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666666',
-    textAlign: 'center',
-  },
-  statIndicator: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
   },
   
   // Достижения
@@ -670,5 +586,28 @@ const styles = StyleSheet.create({
   
   bottomSpacer: {
     height: 40,
+  },
+
+  chartScrollContainer: {
+    marginBottom: 25,
+  },
+
+  chartContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  yAxisContainer: {
+    width: 25,
+    height: 160,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingRight: 4,
+    paddingTop: 15,
+    paddingBottom: 35,
+  },
+  yAxisLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
 }); 
