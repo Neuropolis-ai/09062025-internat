@@ -24,6 +24,7 @@ interface AuctionItem {
   minIncrement: number;
   image: string;
   userParticipating: boolean;
+  userBid?: number; // Ставка пользователя
 }
 
 interface BidModalProps {
@@ -192,8 +193,17 @@ const AuctionCard: React.FC<{ item: AuctionItem; onBid: () => void }> = ({ item,
           <Text style={styles.itemDescription}>{item.description}</Text>
           
           <View style={styles.bidInfo}>
-            <Text style={styles.currentBidLabel}>Последняя ставка</Text>
-            <Text style={styles.currentBidAmount}>{item.currentBid} L-Coin</Text>
+            <View style={styles.bidColumn}>
+              <Text style={styles.currentBidLabel}>Последняя ставка</Text>
+              <Text style={styles.currentBidAmount}>{item.currentBid} L-Coin</Text>
+              
+              {item.userParticipating && item.userBid && (
+                <>
+                  <Text style={styles.userBidLabel}>Моя ставка</Text>
+                  <Text style={styles.userBidAmount}>{item.userBid} L-Coin</Text>
+                </>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -228,6 +238,7 @@ export default function AuctionScreen() {
       minIncrement: 10,
       image: '💻',
       userParticipating: true,
+      userBid: 65,
     },
     {
       id: '3',
@@ -255,6 +266,7 @@ export default function AuctionScreen() {
       minIncrement: 15,
       image: '👨‍🍳',
       userParticipating: true,
+      userBid: 80,
     },
   ]);
 
@@ -280,7 +292,7 @@ export default function AuctionScreen() {
       setAuctionItems(items => 
         items.map(item => 
           item.id === selectedItem.id 
-            ? { ...item, currentBid: amount, userParticipating: true }
+            ? { ...item, currentBid: amount, userParticipating: true, userBid: amount }
             : item
         )
       );
@@ -489,6 +501,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  bidColumn: {
+    flexDirection: 'column',
+    gap: 8,
+  },
   currentBidLabel: {
     fontSize: 14,
     color: '#666666',
@@ -497,6 +513,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#8B2439',
+  },
+  userBidLabel: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  userBidAmount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#22C55E',
   },
   bidButton: {
     backgroundColor: '#8B2439',
