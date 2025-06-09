@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { Header } from '../components/Header'
 
 interface Transaction {
   id: string
@@ -83,19 +84,11 @@ export default function BankScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Шапка */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Лицейский банк</Text>
-        <TouchableOpacity 
-          style={styles.notificationButton} 
-          onPress={handleNotificationPress}
-        >
-          <Text style={styles.notificationEmoji}>🔔</Text>
-          <View style={styles.notificationBadge}>
-            <Text style={styles.notificationCount}>3</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Унифицированный хедер */}
+      <Header 
+        title="Лицейский банк" 
+        onNotificationPress={handleNotificationPress}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Блок идентификации студента */}
@@ -190,48 +183,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
-  },
-  
-  // Шапка
-  header: {
-    backgroundColor: '#8B2439',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    flex: 1,
-  },
-  notificationButton: {
-    position: 'relative',
-    padding: 8,
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationCount: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  notificationEmoji: {
-    fontSize: 20,
-    color: '#FFFFFF',
   },
 
   // Контент

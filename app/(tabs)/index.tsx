@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Header } from '../components/Header';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -50,20 +51,11 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#8B2439" />
       
-      {/* Шапка согласно ТЗ */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Лицей-интернат "Подмосковный"</Text>
-        <TouchableOpacity 
-          style={styles.notificationButton} 
-          onPress={handleNotificationsPress}
-        >
-          <Text style={styles.notificationEmoji}>🔔</Text>
-          {/* Индикатор непрочитанных сообщений */}
-          <View style={styles.notificationBadge}>
-            <Text style={styles.notificationCount}>3</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      {/* Унифицированный хедер */}
+      <Header 
+        title='Лицей-интернат "Подмосковный"' 
+        onNotificationPress={handleNotificationsPress}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Информационный блок ученика согласно ТЗ */}
@@ -172,48 +164,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F2F2F7',
-  },
-  
-  // Шапка
-  header: {
-    backgroundColor: '#8B2439',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: 50, // Учет статус бара
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    flex: 1,
-  },
-  notificationButton: {
-    position: 'relative',
-    padding: 8,
-  },
-  notificationEmoji: {
-    fontSize: 24,
-    color: '#FFFFFF',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationCount: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
 
   // Контент
