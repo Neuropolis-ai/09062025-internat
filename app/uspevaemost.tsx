@@ -130,14 +130,14 @@ export default function UspevamostScreen() {
                     style={[
                       styles.progressBarFill, 
                       { 
-                        width: `${(currentGrade / maxGrade) * 100}%`,
+                        width: `${((currentGrade - 3.5) / (maxGrade - 3.5)) * 100}%`,
                         backgroundColor: getGradeColor(currentGrade)
                       }
                     ]} 
                   />
                 </View>
                 <Text style={styles.progressText}>
-                  {Math.round((currentGrade / maxGrade) * 100)}% от максимума
+                  {Math.round(((currentGrade - 3.5) / (maxGrade - 3.5)) * 100)}% от отличного результата
                 </Text>
               </View>
             </View>
@@ -157,7 +157,7 @@ export default function UspevamostScreen() {
             <LineChart
               data={gradeData}
               width={width - 80}
-              height={250}
+              height={200}
               spacing={40}
               initialSpacing={20}
               endSpacing={20}
@@ -172,16 +172,17 @@ export default function UspevamostScreen() {
               xAxisThickness={1}
               yAxisThickness={1}
               
-              // Настройки Y-оси для оценок от 2.0 до 5.0
+              // Настройки Y-оси для компактного диапазона оценок от 3.5 до 5.0
               yAxisOffset={0}
               maxValue={5.0}
-              mostNegativeValue={2.0}
-              noOfSections={6}
+              mostNegativeValue={3.5}
+              noOfSections={3}
               stepValue={0.5}
-              yAxisLabelTexts={['2.0', '2.5', '3.0', '3.5', '4.0', '4.5', '5.0']}
+              yAxisLabelTexts={['3.5', '4.0', '4.5', '5.0']}
               yAxisTextStyle={styles.yAxisText}
               yAxisLabelPrefix=""
               yAxisLabelSuffix=""
+              formatYLabel={(label) => parseFloat(label).toFixed(1)}
               
               // Настройки X-оси
               xAxisLabelTextStyle={styles.xAxisText}
@@ -199,7 +200,7 @@ export default function UspevamostScreen() {
               dataPointsHeight={12}
               hideDataPoints={false}
               
-              // Отображение значений на точках
+              // Отображение значений на точках с округлением до десятых
               showValuesAsDataPointsText
               textColor="#333"
               textFontSize={12}
@@ -218,7 +219,7 @@ export default function UspevamostScreen() {
               
               // Интерактивность
               pointerConfig={{
-                pointerStripHeight: 200,
+                pointerStripHeight: 160,
                 pointerStripColor: '#8B2439',
                 pointerStripWidth: 2,
                 pointerColor: '#8B2439',
@@ -253,7 +254,7 @@ export default function UspevamostScreen() {
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>4.8</Text>
-              <Text style={styles.statLabel}>Максимум</Text>
+              <Text style={styles.statLabel}>Лучший результат</Text>
               <View style={[styles.statIndicator, { backgroundColor: '#FF9800' }]} />
             </View>
           </View>
