@@ -1,518 +1,429 @@
-import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  FlatList,
-  Alert,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React from 'react'
+import { ScrollView, View, Alert, TouchableOpacity, StyleSheet, Text, SafeAreaView } from 'react-native'
 
 interface Transaction {
-  id: string;
-  type: 'income' | 'expense' | 'transfer';
-  title: string;
-  description: string;
-  amount: number;
-  date: string;
-  category: string;
-}
-
-interface Balance {
-  type: 'main' | 'credit';
-  title: string;
-  amount: number;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  bgColor: string;
+  id: string
+  type: 'income' | 'expense'
+  amount: number
+  description: string
+  date: string
+  time: string
+  note?: string
 }
 
 export default function BankScreen() {
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'income' | 'expense'>('all');
-
-  const balances: Balance[] = [
-    {
-      type: 'main',
-      title: 'Расчетный счет',
-      amount: 1250,
-      icon: 'card',
-      color: '#007AFF',
-      bgColor: '#E3F2FD',
-    },
-    {
-      type: 'credit',
-      title: 'Кредитный счет',
-      amount: 500,
-      icon: 'card-outline',
-      color: '#34C759',
-      bgColor: '#E8F5E8',
-    },
-  ];
-
-  const [transactions, setTransactions] = useState<Transaction[]>([
+  // Мок данные согласно ТЗ
+  const innl = '459183'
+  const checkingAccountNumber = '40817810570000123456'
+  const creditAccountNumber = '40817810570000654321'
+  const checkingBalance = 2450 // L-Coin
+  const creditLimit = 1000 // L-Coin
+  const creditUsed = 250 // L-Coin
+  const creditAvailable = creditLimit - creditUsed
+  const notificationCount = 3
+  
+  const recentTransactions: Transaction[] = [
     {
       id: '1',
       type: 'income',
-      title: 'Выполнение контракта',
-      description: 'Уборка территории',
       amount: 200,
-      date: '2025-01-15T10:30:00Z',
-      category: 'Работа',
+      description: 'Начисление за участие в олимпиаде',
+      date: '15.01.2025',
+      time: '14:30',
+      note: 'Региональная олимпиада по математике'
     },
     {
       id: '2',
       type: 'expense',
-      title: 'Покупка в L-shop',
-      description: 'Школьные принадлежности',
-      amount: -150,
-      date: '2025-01-14T15:20:00Z',
-      category: 'Покупки',
+      amount: 150,
+      description: 'Списание за покупку в L-shop',
+      date: '14.01.2025',
+      time: '16:45',
+      note: 'Покупка канцелярских товаров'
     },
     {
       id: '3',
       type: 'income',
-      title: 'Стипендия',
-      description: 'Месячная стипендия',
-      amount: 800,
-      date: '2025-01-10T09:00:00Z',
-      category: 'Стипендия',
+      amount: 100,
+      description: 'Начисление за дежурство',
+      date: '13.01.2025',
+      time: '18:00',
     },
     {
       id: '4',
       type: 'expense',
-      title: 'Ставка на аукционе',
-      description: 'Лот: Книга по программированию',
-      amount: -300,
-      date: '2025-01-08T14:45:00Z',
-      category: 'Аукцион',
+      amount: 75,
+      description: 'Списание за услуги столовой',
+      date: '12.01.2025',
+      time: '12:30',
+      note: 'Обед'
     },
     {
       id: '5',
-      type: 'transfer',
-      title: 'Перевод другу',
-      description: 'Иванову Петру',
-      amount: -100,
-      date: '2025-01-05T11:15:00Z',
-      category: 'Переводы',
-    },
-  ]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    // Имитация обновления данных
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
-
-  const getTransactionIcon = (type: string, category: string) => {
-    switch (type) {
-      case 'income':
-        return category === 'Стипендия' ? 'school' : 'trending-up';
-      case 'expense':
-        return category === 'Покупки' ? 'bag' : category === 'Аукцион' ? 'hammer' : 'trending-down';
-      case 'transfer':
-        return 'swap-horizontal';
-      default:
-        return 'help-circle';
+      type: 'income',
+      amount: 300,
+      description: 'Начисление стипендии',
+      date: '10.01.2025',
+      time: '09:00',
+      note: 'Месячная стипендия за отличную учебу'
     }
-  };
+  ]
 
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'income':
-        return '#34C759';
-      case 'expense':
-        return '#FF3B30';
-      case 'transfer':
-        return '#FF9500';
-      default:
-        return '#666666';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return `Сегодня, ${date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Вчера, ${date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
-    } else {
-      return date.toLocaleDateString('ru-RU', { 
-        day: '2-digit', 
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-  };
-
-  const filteredTransactions = transactions.filter(transaction => {
-    if (selectedFilter === 'all') return true;
-    return transaction.type === selectedFilter;
-  });
-
-  const BalanceCard = ({ balance }: { balance: Balance }) => (
-    <View style={[styles.balanceCard, { backgroundColor: balance.bgColor }]}>
-      <View style={styles.balanceHeader}>
-        <View style={[styles.balanceIcon, { backgroundColor: balance.color }]}>
-          <Ionicons name={balance.icon} size={24} color="#FFFFFF" />
-        </View>
-        <TouchableOpacity style={styles.moreButton}>
-          <Ionicons name="ellipsis-horizontal" size={20} color={balance.color} />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.balanceTitle}>{balance.title}</Text>
-      <Text style={[styles.balanceAmount, { color: balance.color }]}>
-        {balance.amount.toLocaleString()} L-Coin
-      </Text>
-    </View>
-  );
-
-  const TransactionCard = ({ transaction }: { transaction: Transaction }) => (
-    <TouchableOpacity 
-      style={styles.transactionCard}
-      onPress={() => Alert.alert('Детали', `Операция: ${transaction.title}`)}
-      activeOpacity={0.7}
-    >
-      <View style={[
-        styles.transactionIcon, 
-        { backgroundColor: getTransactionColor(transaction.type) + '20' }
-      ]}>
-        <Ionicons 
-          name={getTransactionIcon(transaction.type, transaction.category)} 
-          size={20} 
-          color={getTransactionColor(transaction.type)} 
-        />
-      </View>
-      <View style={styles.transactionContent}>
-        <Text style={styles.transactionTitle}>{transaction.title}</Text>
-        <Text style={styles.transactionDescription}>{transaction.description}</Text>
-        <Text style={styles.transactionDate}>{formatDate(transaction.date)}</Text>
-      </View>
-      <View style={styles.transactionAmount}>
-        <Text style={[
-          styles.transactionAmountText,
-          { color: getTransactionColor(transaction.type) }
-        ]}>
-          {transaction.amount > 0 ? '+' : ''}{transaction.amount.toLocaleString()}
-        </Text>
-        <Text style={styles.transactionCurrency}>L-Coin</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const FilterButton = ({ 
-    title, 
-    value, 
-    isSelected 
-  }: { 
-    title: string; 
-    value: 'all' | 'income' | 'expense'; 
-    isSelected: boolean 
-  }) => (
-    <TouchableOpacity
-      style={[styles.filterButton, isSelected && styles.filterButtonActive]}
-      onPress={() => setSelectedFilter(value)}
-      activeOpacity={0.7}
-    >
-      <Text style={[
-        styles.filterButtonText,
-        isSelected && styles.filterButtonTextActive
-      ]}>
-        {title}
-      </Text>
-    </TouchableOpacity>
-  );
+  const handleNotificationPress = (): void => {
+    Alert.alert('Уведомления', `У вас ${notificationCount} новых уведомлений`)
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Шапка (Header) */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Лицейский банк</Text>
-          <TouchableOpacity style={styles.headerButton}>
-            <Ionicons name="notifications-outline" size={24} color="#007AFF" />
+          <Text style={styles.headerTitle}>
+            Лицейский банк
+          </Text>
+          <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
+            <View style={styles.notificationIcon}>
+              <Text style={styles.notificationEmoji}>🔔</Text>
+              {notificationCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {notificationCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         </View>
 
-        {/* Balance Cards */}
-        <View style={styles.balancesContainer}>
-          {balances.map((balance, index) => (
-            <BalanceCard key={index} balance={balance} />
+        {/* Блок идентификации ученика */}
+        <View style={styles.identificationSection}>
+          <Text style={styles.innlText}>
+            ИННЛ: {innl}
+          </Text>
+        </View>
+
+        {/* Блок расчётного счёта */}
+        <View style={styles.accountCard}>
+          <View style={styles.accountHeader}>
+            <Text style={styles.accountTitle}>
+              Расчётный счёт № {checkingAccountNumber.slice(-8)}
+            </Text>
+          </View>
+          <View style={styles.balanceSection}>
+            <Text style={styles.balanceAmount}>
+              {checkingBalance.toLocaleString()} L-Coin
+            </Text>
+          </View>
+        </View>
+
+        {/* Блок кредитного счёта */}
+        <View style={styles.creditCard}>
+          <View style={styles.accountHeader}>
+            <View style={styles.creditHeaderRow}>
+              <Text style={styles.accountTitle}>
+                Кредитный счёт № {creditAccountNumber.slice(-8)}
+              </Text>
+              <TouchableOpacity style={styles.warningIcon}>
+                <Text style={styles.warningEmoji}>⚠️</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.creditDetails}>
+            <View style={styles.creditItem}>
+              <Text style={styles.creditLabel}>Доступно:</Text>
+              <Text style={styles.creditAvailable}>
+                {creditAvailable.toLocaleString()} L-Coin
+              </Text>
+            </View>
+            <View style={styles.creditItem}>
+              <Text style={styles.creditLabel}>Использовано:</Text>
+              <Text style={styles.creditUsed}>
+                {creditUsed.toLocaleString()} L-Coin
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* История операций */}
+        <View style={styles.historySection}>
+          <Text style={styles.historyTitle}>
+            История операций
+          </Text>
+          
+          {recentTransactions.map((transaction) => (
+            <View key={transaction.id} style={styles.transactionCard}>
+              <View style={styles.transactionRow}>
+                <View style={styles.transactionInfo}>
+                  <View style={styles.transactionHeader}>
+                    <Text 
+                      style={[
+                        styles.transactionType,
+                        { color: transaction.type === 'income' ? '#4D8061' : '#E74C3C' }
+                      ]}
+                    >
+                      {transaction.type === 'income' ? 'Начисление' : 'Списание'}
+                    </Text>
+                    <Text 
+                      style={[
+                        styles.transactionAmount,
+                        { color: transaction.type === 'income' ? '#4D8061' : '#E74C3C' }
+                      ]}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount} L-Coin
+                    </Text>
+                  </View>
+                  
+                  <Text style={styles.transactionDescription}>{transaction.description}</Text>
+                  
+                  <View style={styles.transactionMeta}>
+                    <Text style={styles.transactionDate}>{transaction.date} в {transaction.time}</Text>
+                  </View>
+                  
+                  {transaction.note && (
+                    <View style={styles.transactionNote}>
+                      <Text style={styles.transactionNoteText}>Примечание: {transaction.note}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            </View>
           ))}
-        </View>
-
-        {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="arrow-up" size={20} color="#34C759" />
-            <Text style={styles.quickActionText}>Пополнить</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="arrow-down" size={20} color="#FF3B30" />
-            <Text style={styles.quickActionText}>Перевести</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.quickActionButton}>
-            <Ionicons name="card" size={20} color="#007AFF" />
-            <Text style={styles.quickActionText}>Заказать карту</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Transactions */}
-        <View style={styles.transactionsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>История операций</Text>
-            <TouchableOpacity>
-              <Text style={styles.viewAllText}>Все</Text>
+          
+          <View style={styles.showMoreContainer}>
+            <TouchableOpacity
+              style={styles.showMoreButton}
+              onPress={() => Alert.alert('История', 'Показать полную историю операций')}
+            >
+              <Text style={styles.showMoreText}>Показать все операции</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Filters */}
-          <View style={styles.filtersContainer}>
-            <FilterButton 
-              title="Все" 
-              value="all" 
-              isSelected={selectedFilter === 'all'} 
-            />
-            <FilterButton 
-              title="Доходы" 
-              value="income" 
-              isSelected={selectedFilter === 'income'} 
-            />
-            <FilterButton 
-              title="Расходы" 
-              value="expense" 
-              isSelected={selectedFilter === 'expense'} 
-            />
-          </View>
-
-          {/* Transactions List */}
-          <View style={styles.transactionsList}>
-            {filteredTransactions.map((transaction) => (
-              <TransactionCard key={transaction.id} transaction={transaction} />
-            ))}
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FAFAFA',
   },
-  scrollView: {
-    flex: 1,
+  content: {
+    paddingBottom: 64,
   },
+  
+  // Шапка
   header: {
+    backgroundColor: '#8B2439',
+    paddingTop: 40,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    justifyContent: 'center',
+    position: 'relative',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#000000',
-  },
-  headerButton: {
-    padding: 4,
-  },
-  balancesContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-    gap: 12,
-  },
-  balanceCard: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  balanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  balanceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moreButton: {
-    padding: 4,
-  },
-  balanceTitle: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  balanceAmount: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 32,
-    justifyContent: 'space-between',
-  },
-  quickActionButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickActionText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#000000',
-    marginTop: 8,
+    color: '#FFFFFF',
     textAlign: 'center',
   },
-  transactionsSection: {
-    flex: 1,
+  notificationButton: {
+    position: 'absolute',
+    right: 24,
+    top: 40,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  notificationIcon: {
+    position: 'relative',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    justifyContent: 'center',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-  viewAllText: {
-    fontSize: 16,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  filtersContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-    gap: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-  },
-  filterButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  filterButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
-  },
-  filterButtonTextActive: {
+  notificationEmoji: {
+    fontSize: 24,
     color: '#FFFFFF',
   },
-  transactionsList: {
-    paddingHorizontal: 20,
-  },
-  transactionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
+  notificationBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#E74C3C',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  
+  // Идентификация
+  identificationSection: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
+  },
+  innlText: {
+    fontSize: 16,
+    color: '#666666',
+  },
+  
+  // Счета
+  accountCard: {
+    marginHorizontal: 24,
+    marginTop: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  transactionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  creditCard: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    backgroundColor: '#FAFAFA',
+    borderColor: '#F1C40F',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+  },
+  accountHeader: {
+    marginBottom: 16,
+  },
+  accountTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#8B2439',
+  },
+  creditHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    justifyContent: 'space-between',
   },
-  transactionContent: {
+  warningIcon: {
+    padding: 4,
+  },
+  warningEmoji: {
+    fontSize: 20,
+  },
+  balanceSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  balanceAmount: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#8B2439',
+  },
+  creditDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+  },
+  creditItem: {
     flex: 1,
+    alignItems: 'center',
   },
-  transactionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  transactionDescription: {
+  creditLabel: {
     fontSize: 14,
     color: '#666666',
-    marginBottom: 2,
+    marginBottom: 4,
+  },
+  creditAvailable: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4D8061',
+  },
+  creditUsed: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#E74C3C',
+  },
+  
+  // История операций
+  historySection: {
+    marginTop: 32,
+    paddingHorizontal: 24,
+  },
+  historyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#8B2439',
+    marginBottom: 16,
+  },
+  transactionCard: {
+    marginVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  transactionRow: {
+    flexDirection: 'row',
+  },
+  transactionInfo: {
+    flex: 1,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  transactionType: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  transactionAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  transactionDescription: {
+    fontSize: 16,
+    color: '#333333',
+    marginBottom: 4,
+  },
+  transactionMeta: {
+    marginTop: 4,
   },
   transactionDate: {
     fontSize: 12,
-    color: '#999999',
+    color: '#666666',
   },
-  transactionAmount: {
-    alignItems: 'flex-end',
+  transactionNote: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
   },
-  transactionAmountText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  transactionCurrency: {
+  transactionNoteText: {
     fontSize: 12,
-    color: '#999999',
-    marginTop: 2,
+    color: '#666666',
   },
-}); 
+  showMoreContainer: {
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  showMoreButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  showMoreText: {
+    fontSize: 16,
+    color: '#8B2439',
+    textDecorationLine: 'underline',
+  },
+}) 
