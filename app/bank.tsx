@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } fr
 import { Ionicons } from '@expo/vector-icons'
 import { Header } from './components/Header'
 import { router } from 'expo-router'
+import { Stack } from 'expo-router'
 
 interface Transaction {
   id: string
@@ -88,101 +89,104 @@ export default function BankScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Унифицированный хедер */}
-      <Header 
-        title="Лицейский банк" 
-        onNotificationPress={handleNotificationPress}
-        onBackPress={handleBackPress}
-        showBackButton={true}
-      />
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        {/* Унифицированный хедер */}
+        <Header 
+          title="Лицейский банк" 
+          onNotificationPress={handleNotificationPress}
+          onBackPress={handleBackPress}
+          showBackButton={true}
+        />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Блок идентификации студента */}
-        <View style={styles.studentBlock}>
-          <Text style={styles.innlLabel}>ИННЛ:</Text>
-          <Text style={styles.innlNumber}>{innl}</Text>
-        </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Блок идентификации студента */}
+          <View style={styles.studentBlock}>
+            <Text style={styles.innlLabel}>ИННЛ:</Text>
+            <Text style={styles.innlNumber}>{innl}</Text>
+          </View>
 
-        {/* Текущий счёт - главная карточка с бордовым фоном */}
-        <View style={styles.primaryAccountCard}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="card" size={24} color="#FFFFFF" />
-            <View style={styles.cardTitleContainer}>
-              <Text style={styles.primaryCardTitle}>Расчётный счёт</Text>
-              <Text style={styles.primaryCardNumber}>№ {currentAccountNumber}</Text>
-            </View>
-          </View>
-          <View style={styles.primaryBalanceContainer}>
-            <Text style={styles.primaryBalanceLabel}>Доступно</Text>
-            <Text style={styles.primaryBalanceAmount}>{formatAmount(currentBalance)} L-Coin</Text>
-          </View>
-        </View>
-
-        {/* Кредитный счёт */}
-        <View style={styles.creditCard}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="card-outline" size={24} color="#8B2439" />
-            <View style={styles.cardTitleContainer}>
-              <Text style={styles.creditCardTitle}>Кредитный счёт</Text>
-              <Text style={styles.creditCardNumber}>№ {creditAccountNumber}</Text>
-            </View>
-            <Ionicons name="warning" size={20} color="#FF8C00" style={styles.warningIcon} />
-          </View>
-          <View style={styles.creditInfo}>
-            <View style={styles.creditRow}>
-              <Text style={styles.creditLabel}>Доступно:</Text>
-              <Text style={styles.creditAvailable}>{formatAmount(creditAvailable)} L-Coin</Text>
-            </View>
-            <View style={styles.creditRow}>
-              <Text style={styles.creditLabel}>Использовано:</Text>
-              <Text style={styles.creditUsed}>{formatAmount(creditUsed)} L-Coin</Text>
-            </View>
-            <View style={styles.creditLimitContainer}>
-              <Text style={styles.creditLimitLabel}>Лимит: {formatAmount(creditLimit)} L-Coin</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* История операций */}
-        <View style={styles.historySection}>
-          <Text style={styles.sectionTitle}>История операций</Text>
-          {transactions.map((transaction) => (
-            <View key={transaction.id} style={styles.transactionCard}>
-              <View style={styles.transactionHeader}>
-                <View style={styles.transactionType}>
-                  <Ionicons 
-                    name={transaction.type === 'income' ? 'arrow-down-circle' : 'arrow-up-circle'} 
-                    size={28} 
-                    color={transaction.type === 'income' ? '#22C55E' : '#EF4444'} 
-                  />
-                  <View style={styles.transactionDetails}>
-                    <Text style={styles.transactionDescription}>{transaction.description}</Text>
-                    <Text style={styles.transactionDateTime}>
-                      {transaction.date} • {transaction.time}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={[
-                  styles.transactionAmount,
-                  { color: transaction.type === 'income' ? '#22C55E' : '#EF4444' }
-                ]}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)} L-Coin
-                </Text>
+          {/* Текущий счёт - главная карточка с бордовым фоном */}
+          <View style={styles.primaryAccountCard}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="card" size={24} color="#FFFFFF" />
+              <View style={styles.cardTitleContainer}>
+                <Text style={styles.primaryCardTitle}>Расчётный счёт</Text>
+                <Text style={styles.primaryCardNumber}>№ {currentAccountNumber}</Text>
               </View>
-              {transaction.note && (
-                <Text style={styles.transactionNote}>{transaction.note}</Text>
-              )}
             </View>
-          ))}
-          
-          <TouchableOpacity style={styles.showAllButton} onPress={handleShowAllOperations}>
-            <Text style={styles.showAllText}>Показать все операции</Text>
-            <Ionicons name="chevron-forward" size={20} color="#8B2439" />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            <View style={styles.primaryBalanceContainer}>
+              <Text style={styles.primaryBalanceLabel}>Доступно</Text>
+              <Text style={styles.primaryBalanceAmount}>{formatAmount(currentBalance)} L-Coin</Text>
+            </View>
+          </View>
+
+          {/* Кредитный счёт */}
+          <View style={styles.creditCard}>
+            <View style={styles.cardHeader}>
+              <Ionicons name="card-outline" size={24} color="#8B2439" />
+              <View style={styles.cardTitleContainer}>
+                <Text style={styles.creditCardTitle}>Кредитный счёт</Text>
+                <Text style={styles.creditCardNumber}>№ {creditAccountNumber}</Text>
+              </View>
+              <Ionicons name="warning" size={20} color="#FF8C00" style={styles.warningIcon} />
+            </View>
+            <View style={styles.creditInfo}>
+              <View style={styles.creditRow}>
+                <Text style={styles.creditLabel}>Доступно:</Text>
+                <Text style={styles.creditAvailable}>{formatAmount(creditAvailable)} L-Coin</Text>
+              </View>
+              <View style={styles.creditRow}>
+                <Text style={styles.creditLabel}>Использовано:</Text>
+                <Text style={styles.creditUsed}>{formatAmount(creditUsed)} L-Coin</Text>
+              </View>
+              <View style={styles.creditLimitContainer}>
+                <Text style={styles.creditLimitLabel}>Лимит: {formatAmount(creditLimit)} L-Coin</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* История операций */}
+          <View style={styles.historySection}>
+            <Text style={styles.sectionTitle}>История операций</Text>
+            {transactions.map((transaction) => (
+              <View key={transaction.id} style={styles.transactionCard}>
+                <View style={styles.transactionHeader}>
+                  <View style={styles.transactionType}>
+                    <Ionicons 
+                      name={transaction.type === 'income' ? 'arrow-down-circle' : 'arrow-up-circle'} 
+                      size={28} 
+                      color={transaction.type === 'income' ? '#22C55E' : '#EF4444'} 
+                    />
+                    <View style={styles.transactionDetails}>
+                      <Text style={styles.transactionDescription}>{transaction.description}</Text>
+                      <Text style={styles.transactionDateTime}>
+                        {transaction.date} • {transaction.time}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={[
+                    styles.transactionAmount,
+                    { color: transaction.type === 'income' ? '#22C55E' : '#EF4444' }
+                  ]}>
+                    {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)} L-Coin
+                  </Text>
+                </View>
+                {transaction.note && (
+                  <Text style={styles.transactionNote}>{transaction.note}</Text>
+                )}
+              </View>
+            ))}
+            
+            <TouchableOpacity style={styles.showAllButton} onPress={handleShowAllOperations}>
+              <Text style={styles.showAllText}>Показать все операции</Text>
+              <Ionicons name="chevron-forward" size={20} color="#8B2439" />
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   )
 }
 
