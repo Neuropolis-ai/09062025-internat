@@ -18,7 +18,7 @@ export default function HomeScreen() {
     // Навигация по модулям
     switch (module) {
       case 'bank':
-        router.push('/bank');
+        router.push('/(tabs)/bank');
         break;
       case 'grades':
         // TODO: Создать экран успеваемости
@@ -162,8 +162,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Отступ для нижнего меню */}
-        <View style={styles.bottomPadding} />
+        {/* Отступ для нижнего меню убран - управляется системой табов */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -258,6 +257,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 20,
     paddingHorizontal: 20,
+    paddingBottom: 40, // Увеличенный отступ снизу для системы табов
   },
   sectionTitle: {
     fontSize: 20,
@@ -305,10 +305,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666666',
     lineHeight: 20,
-  },
-
-  // Отступ для нижнего меню
-  bottomPadding: {
-    height: 120,
   },
 }); 

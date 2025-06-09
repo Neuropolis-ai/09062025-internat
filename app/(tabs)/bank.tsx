@@ -174,9 +174,6 @@ export default function BankScreen() {
             <Ionicons name="chevron-forward" size={20} color="#8B2439" />
           </TouchableOpacity>
         </View>
-
-        {/* Отступ для нижнего меню */}
-        <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
   )
@@ -360,6 +357,7 @@ const styles = StyleSheet.create({
   // История операций с улучшенным дизайном карточек
   historySection: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -432,10 +430,5 @@ const styles = StyleSheet.create({
     color: '#8B2439',
     fontWeight: '600',
     marginRight: 8,
-  },
-
-  // Отступ для нижнего меню
-  bottomPadding: {
-    height: 120,
   },
 }) 
