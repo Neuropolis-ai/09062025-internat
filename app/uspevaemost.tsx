@@ -108,7 +108,7 @@ export default function UspevamostScreen() {
   };
 
   const handleBackPress = () => {
-    router.back();
+    router.replace('/');
   };
 
   return (
