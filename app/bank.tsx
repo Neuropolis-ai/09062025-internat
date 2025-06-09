@@ -1,5 +1,6 @@
 import React from 'react'
-import { ScrollView, View, Alert, TouchableOpacity, StyleSheet, Text, SafeAreaView } from 'react-native'
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 
 interface Transaction {
   id: string
@@ -12,192 +13,170 @@ interface Transaction {
 }
 
 export default function BankScreen() {
-  // Мок данные согласно ТЗ
-  const innl = '459183'
-  const checkingAccountNumber = '40817810570000123456'
-  const creditAccountNumber = '40817810570000654321'
-  const checkingBalance = 2450 // L-Coin
-  const creditLimit = 1000 // L-Coin
-  const creditUsed = 250 // L-Coin
-  const creditAvailable = creditLimit - creditUsed
-  const notificationCount = 3
-  
-  const recentTransactions: Transaction[] = [
+  const transactions: Transaction[] = [
     {
       id: '1',
       type: 'income',
-      amount: 200,
-      description: 'Начисление за участие в олимпиаде',
-      date: '15.01.2025',
+      amount: 500,
+      description: 'Пополнение',
+      date: '23.12.2024',
       time: '14:30',
-      note: 'Региональная олимпиада по математике'
+      note: 'Пополнение от родителей'
     },
     {
       id: '2',
       type: 'expense',
       amount: 150,
-      description: 'Списание за покупку в L-shop',
-      date: '14.01.2025',
-      time: '16:45',
-      note: 'Покупка канцелярских товаров'
+      description: 'Покупка',
+      date: '22.12.2024',
+      time: '12:15',
+      note: 'Канцелярские товары'
     },
     {
       id: '3',
-      type: 'income',
-      amount: 100,
-      description: 'Начисление за дежурство',
-      date: '13.01.2025',
-      time: '18:00',
+      type: 'expense',
+      amount: 200,
+      description: 'Питание',
+      date: '22.12.2024',
+      time: '08:30',
+      note: 'Завтрак в столовой'
     },
     {
       id: '4',
-      type: 'expense',
-      amount: 75,
-      description: 'Списание за услуги столовой',
-      date: '12.01.2025',
-      time: '12:30',
-      note: 'Обед'
+      type: 'income',
+      amount: 1000,
+      description: 'Стипендия',
+      date: '20.12.2024',
+      time: '10:00',
+      note: 'Академическая стипендия'
     },
     {
       id: '5',
-      type: 'income',
-      amount: 300,
-      description: 'Начисление стипендии',
-      date: '10.01.2025',
-      time: '09:00',
-      note: 'Месячная стипендия за отличную учебу'
+      type: 'expense',
+      amount: 75,
+      description: 'Транспорт',
+      date: '19.12.2024',
+      time: '16:45',
+      note: 'Проезд на автобусе'
     }
   ]
 
+  const accountNumber = '4817 6012 3456 7890'
+  const currentBalance = 2450
+  const creditLimit = 1000
+  const creditUsed = 250
+  const creditAvailable = creditLimit - creditUsed
+  const innl = '459183'
+
   const handleNotificationPress = (): void => {
-    Alert.alert('Уведомления', `У вас ${notificationCount} новых уведомлений`)
+    console.log('Уведомления нажаты')
+  }
+
+  const handleShowAllOperations = (): void => {
+    console.log('Показать все операции')
+  }
+
+  const formatAmount = (amount: number): string => {
+    return amount.toLocaleString('ru-RU')
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Шапка (Header) */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            Лицейский банк
-          </Text>
-          <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <View style={styles.notificationIcon}>
-              <Text style={styles.notificationEmoji}>🔔</Text>
-              {notificationCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {notificationCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Блок идентификации ученика */}
-        <View style={styles.identificationSection}>
-          <Text style={styles.innlText}>
-            ИННЛ: {innl}
-          </Text>
-        </View>
-
-        {/* Блок расчётного счёта */}
-        <View style={styles.accountCard}>
-          <View style={styles.accountHeader}>
-            <Text style={styles.accountTitle}>
-              Расчётный счёт № {checkingAccountNumber.slice(-8)}
-            </Text>
+      {/* Шапка */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Лицейский банк</Text>
+        <TouchableOpacity 
+          style={styles.notificationButton} 
+          onPress={handleNotificationPress}
+        >
+          <Ionicons name="notifications" size={24} color="#FFFFFF" />
+          <View style={styles.notificationBadge}>
+            <Text style={styles.notificationCount}>3</Text>
           </View>
-          <View style={styles.balanceSection}>
-            <Text style={styles.balanceAmount}>
-              {checkingBalance.toLocaleString()} L-Coin
-            </Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Блок идентификации студента */}
+        <View style={styles.studentBlock}>
+          <Text style={styles.innlLabel}>ИННЛ:</Text>
+          <Text style={styles.innlNumber}>{innl}</Text>
+        </View>
+
+        {/* Текущий счёт - главная карточка с бордовым фоном */}
+        <View style={styles.primaryAccountCard}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="card" size={24} color="#FFFFFF" />
+            <Text style={styles.primaryCardTitle}>Расчётный счёт</Text>
+          </View>
+          <Text style={styles.primaryAccountNumber}>{accountNumber}</Text>
+          <View style={styles.primaryBalanceContainer}>
+            <Text style={styles.primaryBalanceLabel}>Доступно</Text>
+            <Text style={styles.primaryBalanceAmount}>{formatAmount(currentBalance)} L-Coin</Text>
           </View>
         </View>
 
-        {/* Блок кредитного счёта */}
+        {/* Кредитный счёт */}
         <View style={styles.creditCard}>
-          <View style={styles.accountHeader}>
-            <View style={styles.creditHeaderRow}>
-              <Text style={styles.accountTitle}>
-                Кредитный счёт № {creditAccountNumber.slice(-8)}
-              </Text>
-              <TouchableOpacity style={styles.warningIcon}>
-                <Text style={styles.warningEmoji}>⚠️</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.cardHeader}>
+            <Ionicons name="card-outline" size={24} color="#8B2439" />
+            <Text style={styles.creditCardTitle}>Кредитный счёт</Text>
           </View>
-          <View style={styles.creditDetails}>
-            <View style={styles.creditItem}>
+          <View style={styles.creditInfo}>
+            <View style={styles.creditRow}>
               <Text style={styles.creditLabel}>Доступно:</Text>
-              <Text style={styles.creditAvailable}>
-                {creditAvailable.toLocaleString()} L-Coin
-              </Text>
+              <Text style={styles.creditAvailable}>{formatAmount(creditAvailable)} L-Coin</Text>
             </View>
-            <View style={styles.creditItem}>
+            <View style={styles.creditRow}>
               <Text style={styles.creditLabel}>Использовано:</Text>
-              <Text style={styles.creditUsed}>
-                {creditUsed.toLocaleString()} L-Coin
-              </Text>
+              <Text style={styles.creditUsed}>{formatAmount(creditUsed)} L-Coin</Text>
+            </View>
+            <View style={styles.creditLimitContainer}>
+              <Text style={styles.creditLimitLabel}>Лимит: {formatAmount(creditLimit)} L-Coin</Text>
             </View>
           </View>
         </View>
 
         {/* История операций */}
         <View style={styles.historySection}>
-          <Text style={styles.historyTitle}>
-            История операций
-          </Text>
-          
-          {recentTransactions.map((transaction) => (
+          <Text style={styles.sectionTitle}>История операций</Text>
+          {transactions.map((transaction) => (
             <View key={transaction.id} style={styles.transactionCard}>
-              <View style={styles.transactionRow}>
-                <View style={styles.transactionInfo}>
-                  <View style={styles.transactionHeader}>
-                    <Text 
-                      style={[
-                        styles.transactionType,
-                        { color: transaction.type === 'income' ? '#4D8061' : '#E74C3C' }
-                      ]}
-                    >
-                      {transaction.type === 'income' ? 'Начисление' : 'Списание'}
-                    </Text>
-                    <Text 
-                      style={[
-                        styles.transactionAmount,
-                        { color: transaction.type === 'income' ? '#4D8061' : '#E74C3C' }
-                      ]}
-                    >
-                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount} L-Coin
+              <View style={styles.transactionHeader}>
+                <View style={styles.transactionType}>
+                  <Ionicons 
+                    name={transaction.type === 'income' ? 'arrow-down-circle' : 'arrow-up-circle'} 
+                    size={28} 
+                    color={transaction.type === 'income' ? '#22C55E' : '#EF4444'} 
+                  />
+                  <View style={styles.transactionDetails}>
+                    <Text style={styles.transactionDescription}>{transaction.description}</Text>
+                    <Text style={styles.transactionDateTime}>
+                      {transaction.date} • {transaction.time}
                     </Text>
                   </View>
-                  
-                  <Text style={styles.transactionDescription}>{transaction.description}</Text>
-                  
-                  <View style={styles.transactionMeta}>
-                    <Text style={styles.transactionDate}>{transaction.date} в {transaction.time}</Text>
-                  </View>
-                  
-                  {transaction.note && (
-                    <View style={styles.transactionNote}>
-                      <Text style={styles.transactionNoteText}>Примечание: {transaction.note}</Text>
-                    </View>
-                  )}
                 </View>
+                <Text style={[
+                  styles.transactionAmount,
+                  { color: transaction.type === 'income' ? '#22C55E' : '#EF4444' }
+                ]}>
+                  {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)} L-Coin
+                </Text>
               </View>
+              {transaction.note && (
+                <Text style={styles.transactionNote}>{transaction.note}</Text>
+              )}
             </View>
           ))}
           
-          <View style={styles.showMoreContainer}>
-            <TouchableOpacity
-              style={styles.showMoreButton}
-              onPress={() => Alert.alert('История', 'Показать полную историю операций')}
-            >
-              <Text style={styles.showMoreText}>Показать все операции</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.showAllButton} onPress={handleShowAllOperations}>
+            <Text style={styles.showAllText}>Показать все операции</Text>
+            <Ionicons name="chevron-forward" size={20} color="#8B2439" />
+          </TouchableOpacity>
         </View>
+
+        {/* Отступ для нижнего меню */}
+        <View style={styles.bottomPadding} />
       </ScrollView>
     </SafeAreaView>
   )
@@ -206,224 +185,257 @@ export default function BankScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  content: {
-    paddingBottom: 64,
+    backgroundColor: '#F2F2F7',
   },
   
   // Шапка
   header: {
     backgroundColor: '#8B2439',
-    paddingTop: 40,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    justifyContent: 'space-between',
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
+    flex: 1,
   },
   notificationButton: {
-    position: 'absolute',
-    right: 24,
-    top: 40,
-  },
-  notificationIcon: {
     position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationEmoji: {
-    fontSize: 24,
-    color: '#FFFFFF',
+    padding: 8,
   },
   notificationBadge: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: '#E74C3C',
+    top: 4,
+    right: 4,
+    backgroundColor: '#FF4444',
     borderRadius: 10,
     minWidth: 20,
     height: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
   },
-  notificationBadgeText: {
+  notificationCount: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: 'bold',
   },
-  
-  // Идентификация
-  identificationSection: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+
+  // Контент
+  content: {
+    flex: 1,
   },
-  innlText: {
+
+  // Блок студента
+  studentBlock: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  innlLabel: {
     fontSize: 16,
     color: '#666666',
+    marginRight: 8,
   },
-  
-  // Счета
-  accountCard: {
-    marginHorizontal: 24,
-    marginTop: 24,
+  innlNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#8B2439',
+  },
+
+  // Главная карточка - Расчётный счёт с бордовым фоном
+  primaryAccountCard: {
+    backgroundColor: '#8B2439',
+    marginHorizontal: 20,
+    marginBottom: 15,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  primaryCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginLeft: 12,
+  },
+  primaryAccountNumber: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    marginBottom: 20,
+    letterSpacing: 1,
+    fontFamily: 'monospace',
+  },
+  primaryBalanceContainer: {
+    alignItems: 'flex-end',
+  },
+  primaryBalanceLabel: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    opacity: 0.8,
+    marginBottom: 4,
+  },
+  primaryBalanceAmount: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+
+  // Кредитная карточка (без жёлтого восклицательного знака)
+  creditCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
-  },
-  creditCard: {
-    marginHorizontal: 24,
-    marginTop: 16,
-    backgroundColor: '#FAFAFA',
-    borderColor: '#F1C40F',
+    elevation: 3,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
+    borderColor: '#E5E5EA',
   },
-  accountHeader: {
-    marginBottom: 16,
-  },
-  accountTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  creditCardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#8B2439',
+    marginLeft: 12,
   },
-  creditHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  creditInfo: {
+    marginTop: 16,
   },
-  warningIcon: {
-    padding: 4,
-  },
-  warningEmoji: {
-    fontSize: 20,
-  },
-  balanceSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  balanceAmount: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#8B2439',
-  },
-  creditDetails: {
+  creditRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: 16,
-  },
-  creditItem: {
-    flex: 1,
     alignItems: 'center',
+    marginBottom: 12,
   },
   creditLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
-    marginBottom: 4,
   },
   creditAvailable: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4D8061',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#22C55E',
   },
   creditUsed: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#E74C3C',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#8B2439',
   },
-  
-  // История операций
+  creditLimitContainer: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5EA',
+  },
+  creditLimitLabel: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+  },
+
+  // История операций с улучшенным дизайном карточек
   historySection: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
-  historyTitle: {
-    fontSize: 24,
+  sectionTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#8B2439',
     marginBottom: 16,
   },
   transactionCard: {
-    marginVertical: 8,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  transactionRow: {
-    flexDirection: 'row',
-  },
-  transactionInfo: {
-    flex: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   transactionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
+    alignItems: 'flex-start',
   },
   transactionType: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  transactionAmount: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  transactionDetails: {
+    marginLeft: 12,
+    flex: 1,
   },
   transactionDescription: {
     fontSize: 16,
-    color: '#333333',
+    fontWeight: '600',
+    color: '#1C1C1E',
     marginBottom: 4,
   },
-  transactionMeta: {
-    marginTop: 4,
+  transactionDateTime: {
+    fontSize: 14,
+    color: '#8E8E93',
   },
-  transactionDate: {
-    fontSize: 12,
-    color: '#666666',
+  transactionAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
   },
   transactionNote: {
+    fontSize: 14,
+    color: '#666666',
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
+    borderTopColor: '#F0F0F0',
+    fontStyle: 'italic',
   },
-  transactionNoteText: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  showMoreContainer: {
+
+  // Кнопка "Показать все"
+  showAllButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    marginTop: 8,
   },
-  showMoreButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  showMoreText: {
+  showAllText: {
     fontSize: 16,
     color: '#8B2439',
-    textDecorationLine: 'underline',
+    fontWeight: '600',
+    marginRight: 8,
+  },
+
+  // Отступ для нижнего меню
+  bottomPadding: {
+    height: 120,
   },
 }) 
