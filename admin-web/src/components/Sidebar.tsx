@@ -70,7 +70,7 @@ export default function Sidebar({ isOpen = true, onClose = () => {} }: SidebarPr
                   Лицей-интернат
                 </h2>
                 <p className="text-white/90 text-sm font-medium">
-                  "Подмосковный"
+                  &ldquo;Подмосковный&rdquo;
                 </p>
               </div>
             </div>

@@ -117,7 +117,7 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
     }
   };
 
-  const handleInputChange = (field: keyof FAQFormData, value: any) => {
+  const handleInputChange = (field: keyof FAQFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -195,7 +195,7 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
                         <select
                           className="admin-input w-full"
                           value={formData.category}
-                          onChange={(e) => handleInputChange('category', e.target.value as any)}
+                          onChange={(e) => handleInputChange('category', e.target.value as 'academic' | 'dormitory' | 'finance' | 'technical' | 'general')}
                         >
                           {Object.entries(categoryNames).map(([key, name]) => (
                             <option key={key} value={key}>
@@ -213,7 +213,7 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
                         <select
                           className="admin-input w-full"
                           value={formData.priority}
-                          onChange={(e) => handleInputChange('priority', e.target.value as any)}
+                          onChange={(e) => handleInputChange('priority', e.target.value as 'low' | 'medium' | 'high')}
                         >
                           {Object.entries(priorityNames).map(([key, name]) => (
                             <option key={key} value={key}>{name}</option>

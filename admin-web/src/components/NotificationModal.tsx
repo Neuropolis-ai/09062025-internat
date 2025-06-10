@@ -104,7 +104,7 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
     }
   };
 
-  const handleInputChange = (field: keyof NotificationFormData, value: any) => {
+  const handleInputChange = (field: keyof NotificationFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -206,7 +206,7 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
                         <select
                           className="admin-input w-full"
                           value={formData.type}
-                          onChange={(e) => handleInputChange('type', e.target.value as any)}
+                          onChange={(e) => handleInputChange('type', e.target.value as 'info' | 'warning' | 'success' | 'error')}
                         >
                           <option value="info">ℹ️ Информация</option>
                           <option value="warning">⚠️ Предупреждение</option>
@@ -263,7 +263,7 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
                         <select
                           className="admin-input w-full"
                           value={formData.target}
-                          onChange={(e) => handleInputChange('target', e.target.value as any)}
+                          onChange={(e) => handleInputChange('target', e.target.value as 'all' | 'students' | 'teachers' | 'parents' | 'specific')}
                         >
                           <option value="all">👥 Все пользователи</option>
                           <option value="students">🎓 Ученики</option>

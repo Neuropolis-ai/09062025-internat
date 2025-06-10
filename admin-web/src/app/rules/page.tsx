@@ -406,7 +406,7 @@ export default function RulesPage() {
                       <select
                         className="admin-input w-full"
                         value={editingRule.category}
-                        onChange={(e) => setEditingRule({...editingRule, category: e.target.value as any})}
+                        onChange={(e) => setEditingRule({...editingRule, category: e.target.value as 'general' | 'academic' | 'behavioral' | 'dormitory' | 'safety'})}
                       >
                         {Object.entries(categoryNames).map(([key, name]) => (
                           <option key={key} value={key}>{categoryIcons[key as keyof typeof categoryIcons]} {name}</option>

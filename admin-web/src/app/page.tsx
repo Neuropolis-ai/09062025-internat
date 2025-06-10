@@ -40,7 +40,7 @@ export default function AdminPanel() {
               Вход в личный кабинет
             </h2>
             <p className="mt-2 text-lg font-semibold" style={{ color: 'var(--primary-burgundy)' }}>
-              Лицей-интернат "Подмосковный"
+              Лицей-интернат &ldquo;Подмосковный&rdquo;
             </p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function AdminPanel() {
                 
                 <div>
                   <h1 className="text-2xl font-bold text-white">Админ-портал</h1>
-                  <p className="text-white/90 font-medium">Лицей-интернат "Подмосковный"</p>
+                  <p className="text-white/90 font-medium">Лицей-интернат &ldquo;Подмосковный&rdquo;</p>
                 </div>
               </div>
               
