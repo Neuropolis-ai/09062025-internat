@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 interface MenuItem {
@@ -20,13 +20,13 @@ const menuItems: MenuItem[] = [
   { name: 'Лицейский банк', href: '/bank', icon: '🏦' },
   { name: 'L-shop', href: '/shop', icon: '🛍️' },
   { name: 'Аукцион', href: '/auction', icon: '🎯' },
-  { name: 'Госзаказы', href: '/government-orders', icon: '🏛️' },
+  { name: 'Госзаказы', href: '/contracts', icon: '🏛️' },
   { name: 'Уведомления', href: '/notifications', icon: '🔔' },
   { name: 'Правила', href: '/rules', icon: '📋' },
   { name: 'FAQ', href: '/faq', icon: '❓' },
 ];
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen = true, onClose = () => {} }: SidebarProps) {
   const pathname = usePathname();
 
   return (

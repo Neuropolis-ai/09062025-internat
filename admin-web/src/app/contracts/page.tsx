@@ -4,174 +4,219 @@ import React, { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import ContractModal from '../../components/ContractModal';
 
-interface Contract {
-  id: number;
+interface TaskBid {
+  id: string;
+  studentName: string;
+  studentClass: string;
+  bidAmount: number;
+  comment: string;
+  submittedAt: string;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+interface Task {
+  id: string;
   title: string;
   description: string;
-  budget: number;
   category: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled';
-  deadline: string;
+  price: number;
+  minBid: number;
+  status: 'open' | 'assigned' | 'completed' | 'cancelled';
   createdAt: string;
+  deadline: string;
+  assignedTo?: string;
   department: string;
-  executor?: string;
-  progress: number;
-  documentsCount: number;
-  participantsCount: number;
+  priority: 'low' | 'medium' | 'high';
+  bids: TaskBid[];
 }
 
-interface ContractFormData {
+interface TaskFormData {
   title: string;
   description: string;
-  budget: number;
   category: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  price: number;
+  minBid: number;
   deadline: string;
   department: string;
-  requirements: string;
-  documents: string[];
-  estimatedDuration: number;
+  priority: 'low' | 'medium' | 'high';
 }
 
-// Тестовые данные контрактов
-const mockContracts: Contract[] = [
+const mockTasks: Task[] = [
   {
-    id: 1,
-    title: "Поставка компьютерного оборудования",
-    description: "Закупка 50 новых компьютеров для обновления компьютерного класса",
-    budget: 2500000,
-    category: "Оборудование",
-    priority: "high",
-    status: "open",
-    deadline: "2024-12-31T23:59:59Z",
-    createdAt: "2024-11-15T10:00:00Z",
-    department: "IT-отдел",
-    progress: 0,
-    documentsCount: 8,
-    participantsCount: 5
+    id: '1',
+    title: 'Организация утренней зарядки',
+    description: 'Проведение утренней зарядки для младших классов. Необходимо подготовить комплекс упражнений и провести занятие в течение недели.',
+    category: 'Спорт',
+    price: 15,
+    minBid: 10,
+    status: 'open',
+    createdAt: '2024-01-10',
+    deadline: '2024-01-20',
+    department: 'Физкультурный отдел',
+    priority: 'medium',
+    bids: [
+      {
+        id: '1',
+        studentName: 'Иванов Петр',
+        studentClass: '10А',
+        bidAmount: 12,
+        comment: 'Имею опыт проведения зарядки в летнем лагере. Готов разработать интересную программу упражнений.',
+        submittedAt: '2024-01-11 10:30',
+        status: 'pending'
+      },
+      {
+        id: '2',
+        studentName: 'Сидорова Анна',
+        studentClass: '11Б',
+        bidAmount: 15,
+        comment: 'Занимаюсь спортом 5 лет, имею сертификат инструктора по фитнесу.',
+        submittedAt: '2024-01-11 14:20',
+        status: 'pending'
+      }
+    ]
   },
   {
-    id: 2,
-    title: "Ремонт спортивного зала",
-    description: "Капитальный ремонт спортивного зала с заменой покрытия и оборудования",
-    budget: 1800000,
-    category: "Строительство",
-    priority: "medium",
-    status: "in_progress",
-    deadline: "2025-01-20T23:59:59Z",
-    createdAt: "2024-10-20T14:30:00Z",
-    department: "Хозяйственная часть",
-    executor: "ООО \"СтройМастер\"",
-    progress: 35,
-    documentsCount: 12,
-    participantsCount: 3
+    id: '2',
+    title: 'Помощь в библиотеке',
+    description: 'Помощь библиотекарю в каталогизации новых поступлений, расстановке книг и подготовке выставки.',
+    category: 'Образование',
+    price: 20,
+    minBid: 15,
+    status: 'assigned',
+    createdAt: '2024-01-08',
+    deadline: '2024-01-25',
+    assignedTo: 'Петрова Мария, 9В',
+    department: 'Библиотека',
+    priority: 'low',
+    bids: [
+      {
+        id: '3',
+        studentName: 'Петрова Мария',
+        studentClass: '9В',
+        bidAmount: 18,
+        comment: 'Люблю читать и работать с книгами. Помогала в школьной библиотеке в прошлом году.',
+        submittedAt: '2024-01-09 09:15',
+        status: 'accepted'
+      }
+    ]
   },
   {
-    id: 3,
-    title: "Закупка канцелярских товаров",
-    description: "Поставка канцелярских принадлежностей на учебный год",
-    budget: 150000,
-    category: "Канцтовары",
-    priority: "low",
-    status: "completed",
-    deadline: "2024-08-31T23:59:59Z",
-    createdAt: "2024-06-15T09:00:00Z",
-    department: "Учебная часть",
-    executor: "ИП Петров А.А.",
-    progress: 100,
-    documentsCount: 6,
-    participantsCount: 8
+    id: '3',
+    title: 'Оформление стенда к празднику',
+    description: 'Создание информационного стенда к предстоящему празднику. Требуется креативный подход и аккуратность.',
+    category: 'Творчество',
+    price: 25,
+    minBid: 20,
+    status: 'open',
+    createdAt: '2024-01-12',
+    deadline: '2024-01-18',
+    department: 'Творческий отдел',
+    priority: 'high',
+    bids: []
   },
   {
-    id: 4,
-    title: "Организация питания",
-    description: "Заключение договора на организацию питания учащихся",
-    budget: 5000000,
-    category: "Услуги",
-    priority: "urgent",
-    status: "open",
-    deadline: "2024-12-25T23:59:59Z",
-    createdAt: "2024-11-01T12:00:00Z",
-    department: "Администрация",
-    progress: 0,
-    documentsCount: 15,
-    participantsCount: 12
+    id: '4',
+    title: 'Дежурство в столовой',
+    description: 'Помощь в сервировке столов, уборке после приема пищи, поддержание порядка в обеденном зале.',
+    category: 'Общественная работа',
+    price: 12,
+    minBid: 8,
+    status: 'completed',
+    createdAt: '2024-01-05',
+    deadline: '2024-01-15',
+    assignedTo: 'Козлов Андрей, 8А',
+    department: 'Хозяйственный отдел',
+    priority: 'medium',
+    bids: [
+      {
+        id: '4',
+        studentName: 'Козлов Андрей',
+        studentClass: '8А',
+        bidAmount: 10,
+        comment: 'Ответственно отношусь к поручениям, готов помочь.',
+        submittedAt: '2024-01-06 16:45',
+        status: 'accepted'
+      }
+    ]
   },
   {
-    id: 5,
-    title: "Модернизация библиотеки",
-    description: "Закупка новых книг и мебели для библиотеки",
-    budget: 800000,
-    category: "Оборудование",
-    priority: "medium",
-    status: "draft",
-    deadline: "2025-03-15T23:59:59Z",
-    createdAt: "2024-11-20T16:45:00Z",
-    department: "Библиотека",
-    progress: 0,
-    documentsCount: 3,
-    participantsCount: 0
+    id: '5',
+    title: 'Техническая поддержка мероприятия',
+    description: 'Помощь в настройке звуковой аппаратуры и освещения для школьного концерта.',
+    category: 'Техническое обеспечение',
+    price: 30,
+    minBid: 25,
+    status: 'open',
+    createdAt: '2024-01-13',
+    deadline: '2024-01-22',
+    department: 'Технический отдел',
+    priority: 'high',
+    bids: [
+      {
+        id: '5',
+        studentName: 'Смирнов Игорь',
+        studentClass: '11А',
+        bidAmount: 28,
+        comment: 'Увлекаюсь техникой, имею опыт работы с аудиоаппаратурой.',
+        submittedAt: '2024-01-14 11:00',
+        status: 'pending'
+      }
+    ]
   }
 ];
 
-const categories = ["Все", "Оборудование", "Строительство", "Канцтовары", "Услуги", "Мебель"];
-const statusFilters = ["Все", "Черновик", "Открытые", "В работе", "Завершенные", "Отмененные"];
-const priorityFilters = ["Все", "Низкий", "Средний", "Высокий", "Срочно"];
-const departments = ["Все", "IT-отдел", "Хозяйственная часть", "Учебная часть", "Администрация", "Библиотека"];
+const categories = ["Все", "Спорт", "Образование", "Творчество", "Общественная работа", "Техническое обеспечение"];
+const statusFilters = ["Все", "Открытые", "Назначенные", "Завершенные", "Отмененные"];
+const priorityFilters = ["Все", "Высокий", "Средний", "Низкий"];
 
 export default function ContractsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Все");
   const [selectedStatus, setSelectedStatus] = useState("Все");
   const [selectedPriority, setSelectedPriority] = useState("Все");
-  const [selectedDepartment, setSelectedDepartment] = useState("Все");
   const [searchQuery, setSearchQuery] = useState("");
   const [contractModalOpen, setContractModalOpen] = useState(false);
-  const [editingContract, setEditingContract] = useState<Contract | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isViewingDetails, setIsViewingDetails] = useState(false);
 
   // Статистические данные
-  const totalContracts = mockContracts.length;
-  const openContracts = mockContracts.filter(c => c.status === 'open').length;
-  const inProgressContracts = mockContracts.filter(c => c.status === 'in_progress').length;
-  const totalBudget = mockContracts.reduce((sum, c) => sum + c.budget, 0);
+  const totalTasks = mockTasks.length;
+  const openTasks = mockTasks.filter(t => t.status === 'open').length;
+  const assignedTasks = mockTasks.filter(t => t.status === 'assigned').length;
+  const totalBids = mockTasks.reduce((sum, t) => sum + t.bids.length, 0);
 
-  // Фильтрация контрактов
-  const filteredContracts = mockContracts.filter(contract => {
-    const matchesCategory = selectedCategory === "Все" || contract.category === selectedCategory;
+  // Фильтрация заданий
+  const filteredTasks = mockTasks.filter(task => {
+    const matchesCategory = selectedCategory === "Все" || task.category === selectedCategory;
     const matchesStatus = selectedStatus === "Все" || 
-      (selectedStatus === "Черновик" && contract.status === "draft") ||
-      (selectedStatus === "Открытые" && contract.status === "open") ||
-      (selectedStatus === "В работе" && contract.status === "in_progress") ||
-      (selectedStatus === "Завершенные" && contract.status === "completed") ||
-      (selectedStatus === "Отмененные" && contract.status === "cancelled");
+      (selectedStatus === "Открытые" && task.status === "open") ||
+      (selectedStatus === "Назначенные" && task.status === "assigned") ||
+      (selectedStatus === "Завершенные" && task.status === "completed") ||
+      (selectedStatus === "Отмененные" && task.status === "cancelled");
     const matchesPriority = selectedPriority === "Все" ||
-      (selectedPriority === "Низкий" && contract.priority === "low") ||
-      (selectedPriority === "Средний" && contract.priority === "medium") ||
-      (selectedPriority === "Высокий" && contract.priority === "high") ||
-      (selectedPriority === "Срочно" && contract.priority === "urgent");
-    const matchesDepartment = selectedDepartment === "Все" || contract.department === selectedDepartment;
-    const matchesSearch = contract.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         contract.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesStatus && matchesPriority && matchesDepartment && matchesSearch;
+      (selectedPriority === "Высокий" && task.priority === "high") ||
+      (selectedPriority === "Средний" && task.priority === "medium") ||
+      (selectedPriority === "Низкий" && task.priority === "low");
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesStatus && matchesPriority && matchesSearch;
   });
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'draft': return 'Черновик';
-      case 'open': return 'Открыт';
-      case 'in_progress': return 'В работе';
-      case 'completed': return 'Завершен';
-      case 'cancelled': return 'Отменен';
+      case 'open': return 'Открыто';
+      case 'assigned': return 'Назначено';
+      case 'completed': return 'Завершено';
+      case 'cancelled': return 'Отменено';
       default: return status;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
       case 'open': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -180,79 +225,72 @@ export default function ContractsPage() {
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'low': return 'Низкий';
-      case 'medium': return 'Средний';
       case 'high': return 'Высокий';
-      case 'urgent': return 'Срочно';
+      case 'medium': return 'Средний';
+      case 'low': return 'Низкий';
       default: return priority;
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'low': return 'bg-gray-100 text-gray-600';
-      case 'medium': return 'bg-blue-100 text-blue-600';
-      case 'high': return 'bg-orange-100 text-orange-600';
-      case 'urgent': return 'bg-red-100 text-red-600';
-      default: return 'bg-gray-100 text-gray-600';
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const formatBudget = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: 'RUB',
-      minimumFractionDigits: 0
-    }).format(amount);
+  const handleViewTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsViewingDetails(true);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  const handleEditContract = (contract: Contract) => {
-    setEditingContract(contract);
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
     setContractModalOpen(true);
   };
 
-  const handleDeleteContract = (contract: Contract) => {
-    if (confirm(`Вы уверены, что хотите удалить контракт "${contract.title}"?`)) {
+  const handleDeleteTask = (task: Task) => {
+    if (confirm(`Вы уверены, что хотите удалить задание "${task.title}"?`)) {
       // TODO: API-запрос на удаление
-      console.log('Удаление контракта:', contract);
-      alert(`Контракт "${contract.title}" удален`);
+      console.log('Удаление задания:', task);
+      alert(`Задание "${task.title}" удалено`);
     }
   };
 
-  const handleViewContract = (contract: Contract) => {
-    // TODO: Открыть подробную информацию о контракте
-    console.log('Просмотр контракта:', contract);
-    alert(`Просмотр контракта: ${contract.title}\nБюджет: ${formatBudget(contract.budget)}\nСтатус: ${getStatusText(contract.status)}`);
-  };
-
-  const handleAddContract = () => {
-    setEditingContract(null);
+  const handleAddTask = () => {
+    setEditingTask(null);
     setContractModalOpen(true);
   };
 
-  const handleSaveContract = (contractData: ContractFormData) => {
-    if (editingContract) {
-      // TODO: API-запрос на обновление контракта
-      console.log('Обновление контракта:', { ...editingContract, ...contractData });
-      alert(`Контракт "${contractData.title}" обновлен!`);
+  const handleSaveTask = (taskData: TaskFormData) => {
+    if (editingTask) {
+      // TODO: API-запрос на обновление задания
+      console.log('Обновление задания:', { ...editingTask, ...taskData });
+      alert(`Задание "${taskData.title}" обновлено!`);
     } else {
-      // TODO: API-запрос на создание контракта
-      console.log('Создание контракта:', contractData);
-      alert(`Контракт "${contractData.title}" создан!`);
+      // TODO: API-запрос на создание задания
+      console.log('Создание задания:', taskData);
+      alert(`Задание "${taskData.title}" создано!`);
     }
   };
 
   const handleCloseModal = () => {
     setContractModalOpen(false);
-    setEditingContract(null);
+    setEditingTask(null);
+  };
+
+  const handleAcceptBid = (taskId: string, bidId: string) => {
+    // TODO: API-запрос на принятие отклика
+    console.log('Принять отклик:', taskId, bidId);
+    alert('Отклик принят!');
+  };
+
+  const handleRejectBid = (taskId: string, bidId: string) => {
+    // TODO: API-запрос на отклонение отклика
+    console.log('Отклонить отклик:', taskId, bidId);
+    alert('Отклик отклонен!');
   };
 
   return (
@@ -277,13 +315,13 @@ export default function ContractsPage() {
                 
                 <div>
                   <h1 className="text-2xl font-bold text-white">Госзаказы</h1>
-                  <p className="text-white/90 font-medium">Управление контрактами и тендерами</p>
+                  <p className="text-white/90 font-medium">Управление заданиями и откликами учеников</p>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={handleAddContract}
+                  onClick={handleAddTask}
                   className="admin-button-primary text-white px-4 py-2 rounded-md transition-colors"
                   style={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -292,7 +330,7 @@ export default function ContractsPage() {
                   onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'}
                 >
-                  Создать заказ
+                  Добавить задание
                 </button>
               </div>
             </div>
@@ -301,42 +339,21 @@ export default function ContractsPage() {
 
         {/* Main content */}
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            
-            {/* Статистические карточки */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Статистика */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
               <div className="admin-card">
-                <div className="p-5">
+                <div className="px-4 py-5 sm:p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center" 
-                           style={{ backgroundColor: 'var(--primary-burgundy)' }}>
-                        <span className="text-white font-bold">🏛️</span>
-                      </div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего заказов</dt>
-                        <dd className="text-lg font-medium text-gray-900">{totalContracts}</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-card">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center"
-                           style={{ backgroundColor: '#3B82F6' }}>
+                      <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
                         <span className="text-white font-bold">📋</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Открытых</dt>
-                        <dd className="text-lg font-medium text-gray-900">{openContracts}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего заданий</dt>
+                        <dd className="text-lg font-medium text-gray-900">{totalTasks}</dd>
                       </dl>
                     </div>
                   </div>
@@ -344,18 +361,17 @@ export default function ContractsPage() {
               </div>
 
               <div className="admin-card">
-                <div className="p-5">
+                <div className="px-4 py-5 sm:p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center"
-                           style={{ backgroundColor: '#F59E0B' }}>
-                        <span className="text-white font-bold">⚡</span>
+                      <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
+                        <span className="text-white font-bold">🟢</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">В работе</dt>
-                        <dd className="text-lg font-medium text-gray-900">{inProgressContracts}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Открытые задания</dt>
+                        <dd className="text-lg font-medium text-gray-900">{openTasks}</dd>
                       </dl>
                     </div>
                   </div>
@@ -363,18 +379,35 @@ export default function ContractsPage() {
               </div>
 
               <div className="admin-card">
-                <div className="p-5">
+                <div className="px-4 py-5 sm:p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center"
-                           style={{ backgroundColor: '#10B981' }}>
-                        <span className="text-white font-bold">💰</span>
+                      <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
+                        <span className="text-white font-bold">✅</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Общий бюджет</dt>
-                        <dd className="text-lg font-medium text-gray-900">{formatBudget(totalBudget)}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Назначенные задания</dt>
+                        <dd className="text-lg font-medium text-gray-900">{assignedTasks}</dd>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-card">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
+                        <span className="text-white font-bold">👥</span>
+                      </div>
+                    </div>
+                    <div className="ml-5 w-0 flex-1">
+                      <dl>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего откликов</dt>
+                        <dd className="text-lg font-medium text-gray-900">{totalBids}</dd>
                       </dl>
                     </div>
                   </div>
@@ -383,66 +416,27 @@ export default function ContractsPage() {
             </div>
 
             {/* Фильтры и поиск */}
-            <div className="admin-card">
+            <div className="admin-card mb-6">
               <div className="px-4 py-5 sm:p-6">
-                <div className="sm:flex sm:items-center sm:justify-between mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      Государственные заказы
-                    </h3>
-                    <p className="mt-1 max-w-2xl text-sm admin-text-secondary">
-                      Управление контрактами и тендерами лицея
-                    </p>
-                  </div>
-                  <div className="mt-4 sm:mt-0">
-                    <button
-                      type="button"
-                      onClick={handleAddContract}
-                      className="admin-button-primary inline-flex items-center px-4 py-2 text-sm font-medium rounded-md"
-                      style={{ backgroundColor: 'var(--primary-burgundy)' }}
-                    >
-                      <span className="mr-2">📋</span>
-                      Создать заказ
-                    </button>
-                  </div>
-                </div>
-
-                {/* Поиск и фильтры */}
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                  <div>
-                    <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                      Поиск заказов
+                    <label className="block text-sm font-medium admin-text-secondary mb-2">
+                      Поиск заданий
                     </label>
                     <input
                       type="text"
-                      id="search"
                       className="admin-input w-full"
-                      placeholder="Введите название..."
+                      placeholder="Поиск по названию или описанию..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
+
                   <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-                      Категория
-                    </label>
-                    <select
-                      id="category"
-                      className="admin-input w-full"
-                      value={selectedCategory}
-                      onChange={(e) => setSelectedCategory(e.target.value)}
-                    >
-                      {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium admin-text-secondary mb-2">
                       Статус
                     </label>
                     <select
-                      id="status"
                       className="admin-input w-full"
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
@@ -452,12 +446,27 @@ export default function ContractsPage() {
                       ))}
                     </select>
                   </div>
+
                   <div>
-                    <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium admin-text-secondary mb-2">
+                      Категория
+                    </label>
+                    <select
+                      className="admin-input w-full"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                      {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium admin-text-secondary mb-2">
                       Приоритет
                     </label>
                     <select
-                      id="priority"
                       className="admin-input w-full"
                       value={selectedPriority}
                       onChange={(e) => setSelectedPriority(e.target.value)}
@@ -467,150 +476,124 @@ export default function ContractsPage() {
                       ))}
                     </select>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Список заданий */}
+            <div className="admin-card">
+              <div className="px-4 py-5 sm:p-6">
+                <div className="sm:flex sm:items-center sm:justify-between mb-6">
                   <div>
-                    <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                      Отдел
-                    </label>
-                    <select
-                      id="department"
-                      className="admin-input w-full"
-                      value={selectedDepartment}
-                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Список заданий
+                    </h3>
+                    <p className="mt-1 max-w-2xl text-sm admin-text-secondary">
+                      Управление заданиями от администрации для учеников
+                    </p>
+                  </div>
+                  <div className="mt-4 sm:mt-0">
+                    <button
+                      onClick={handleAddTask}
+                      className="admin-button-primary inline-flex items-center px-4 py-2 text-sm font-medium rounded-md"
+                      style={{ backgroundColor: 'var(--primary-burgundy)' }}
                     >
-                      {departments.map(dept => (
-                        <option key={dept} value={dept}>{dept}</option>
-                      ))}
-                    </select>
+                      <span className="mr-2">📋</span>
+                      Добавить задание
+                    </button>
                   </div>
                 </div>
-                
-                {/* Таблица контрактов */}
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Заказ
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Бюджет
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Статус
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Приоритет
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Прогресс
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Дедлайн
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Действия
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredContracts.map((contract) => (
-                        <tr key={contract.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">
-                                  {contract.title}
-                                </div>
-                                <div className="text-sm text-gray-500 max-w-xs truncate">
-                                  {contract.description}
-                                </div>
-                                <div className="text-xs text-gray-400 mt-1">
-                                  {contract.department} • 📄 {contract.documentsCount} • 👥 {contract.participantsCount}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {formatBudget(contract.budget)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {contract.category}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
-                              {getStatusText(contract.status)}
-                            </span>
-                            {contract.executor && (
-                              <div className="text-xs text-gray-500 mt-1">
-                                {contract.executor}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(contract.priority)}`}>
-                              {getPriorityText(contract.priority)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-burgundy h-2 rounded-full" 
-                                style={{ 
-                                  width: `${contract.progress}%`,
-                                  backgroundColor: 'var(--primary-burgundy)'
-                                }}
-                              ></div>
-                            </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {contract.progress}%
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {formatDate(contract.deadline)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleViewContract(contract)}
-                                className="text-gray-400 hover:text-blue-600 transition-colors"
-                                title="Просмотр"
-                              >
-                                👁️
-                              </button>
-                              <button
-                                onClick={() => handleEditContract(contract)}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
-                                title="Редактировать"
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                onClick={() => handleDeleteContract(contract)}
-                                className="text-gray-400 hover:text-red-600 transition-colors"
-                                title="Удалить"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
 
-                {/* Результаты поиска */}
-                {filteredContracts.length === 0 && (
+                {filteredTasks.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🔍</div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Заказы не найдены
-                    </h3>
-                    <p className="text-sm admin-text-secondary">
-                      Попробуйте изменить критерии поиска или создать новый заказ
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--background-gray)' }}>
+                      <span className="text-2xl">📋</span>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Заданий не найдено</h3>
+                    <p className="admin-text-secondary">
+                      Попробуйте изменить критерии поиска или создайте новое задание.
                     </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                        style={{ borderColor: 'var(--divider)' }}
+                        onClick={() => handleViewTask(task)}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="text-lg font-medium text-gray-900 flex-1">
+                            {task.title}
+                          </h4>
+                          <span className="text-xl ml-2">👁️</span>
+                        </div>
+                        
+                        <p className="admin-text-secondary text-sm mb-4 line-clamp-2">
+                          {task.description}
+                        </p>
+
+                        <div className="flex items-center justify-between mb-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                            {getStatusText(task.status)}
+                          </span>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                            {getPriorityText(task.priority)}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 text-sm admin-text-secondary mb-3">
+                          <div className="flex items-center">
+                            <span className="mr-1">💰</span>
+                            {task.price} L-Coin
+                          </div>
+                          <div className="flex items-center">
+                            <span className="mr-1">👥</span>
+                            {task.bids.length} откликов
+                          </div>
+                          <div className="flex items-center">
+                            <span className="mr-1">📅</span>
+                            до {new Date(task.deadline).toLocaleDateString('ru-RU')}
+                          </div>
+                          <div className="flex items-center">
+                            <span className="mr-1">🏷️</span>
+                            {task.category}
+                          </div>
+                        </div>
+
+                        {task.assignedTo && (
+                          <div className="mt-3 p-2 bg-green-50 rounded-md">
+                            <p className="text-sm text-green-800">
+                              <strong>Назначено:</strong> {task.assignedTo}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="flex justify-end space-x-2 mt-4">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditTask(task);
+                            }}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                            title="Редактировать"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTask(task);
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded"
+                            title="Удалить"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -619,12 +602,122 @@ export default function ContractsPage() {
         </main>
       </div>
 
-      {/* Модальное окно контракта */}
+      {/* Модальное окно деталей задания */}
+      {isViewingDetails && selectedTask && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md admin-card">
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900">{selectedTask.title}</h3>
+                <p className="mt-1 text-sm admin-text-secondary">{selectedTask.department}</p>
+              </div>
+              <button
+                onClick={() => setIsViewingDetails(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-md font-medium text-gray-900 mb-2">Описание</h4>
+                <p className="text-sm admin-text-secondary">{selectedTask.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium admin-text-secondary">Стоимость:</span>
+                  <p className="text-sm text-gray-900">{selectedTask.price} L-Coin</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium admin-text-secondary">Минимальная ставка:</span>
+                  <p className="text-sm text-gray-900">{selectedTask.minBid} L-Coin</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium admin-text-secondary">Дедлайн:</span>
+                  <p className="text-sm text-gray-900">{new Date(selectedTask.deadline).toLocaleDateString('ru-RU')}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium admin-text-secondary">Приоритет:</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(selectedTask.priority)}`}>
+                    {getPriorityText(selectedTask.priority)}
+                  </span>
+                </div>
+              </div>
+
+              {selectedTask.bids.length > 0 && (
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Отклики учеников ({selectedTask.bids.length})</h4>
+                  <div className="space-y-4">
+                    {selectedTask.bids.map((bid) => (
+                      <div key={bid.id} className="border rounded-lg p-4" style={{ borderColor: 'var(--divider)' }}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h5 className="text-sm font-medium text-gray-900">{bid.studentName}</h5>
+                            <p className="text-xs admin-text-secondary">{bid.studentClass} • {bid.submittedAt}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium" style={{ color: 'var(--primary-burgundy)' }}>{bid.bidAmount} L-Coin</span>
+                            {bid.status === 'pending' && (
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => handleAcceptBid(selectedTask.id, bid.id)}
+                                  className="px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700"
+                                >
+                                  Принять
+                                </button>
+                                <button
+                                  onClick={() => handleRejectBid(selectedTask.id, bid.id)}
+                                  className="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700"
+                                >
+                                  Отклонить
+                                </button>
+                              </div>
+                            )}
+                            {bid.status === 'accepted' && (
+                              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
+                                Принято
+                              </span>
+                            )}
+                            {bid.status === 'rejected' && (
+                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-md">
+                                Отклонено
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm admin-text-secondary">{bid.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedTask.bids.length === 0 && (
+                <div className="text-center py-8">
+                  <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--background-gray)' }}>
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Откликов пока нет</h3>
+                  <p className="admin-text-secondary">
+                    Ученики еще не откликнулись на это задание.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно добавления/редактирования задания */}
       <ContractModal 
-        isOpen={contractModalOpen}
+        isOpen={contractModalOpen} 
         onClose={handleCloseModal}
-        onSave={handleSaveContract}
-        editContract={editingContract}
+        task={editingTask}
+        onSave={handleSaveTask}
       />
     </div>
   );
