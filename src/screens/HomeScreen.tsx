@@ -112,7 +112,7 @@ export const HomeScreen: React.FC = () => {
           {/* Госзаказы */}
           <TouchableOpacity 
             style={styles.moduleCard}
-            onPress={() => navigation.navigate('FAQ')}
+            onPress={() => navigation.navigate('Contracts')}
           >
             <Text style={styles.moduleIcon}>📋</Text>
             <View style={styles.moduleContent}>
