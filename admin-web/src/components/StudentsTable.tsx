@@ -157,7 +157,7 @@ export default function StudentsTable() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="text-sm font-medium text-gray-900">
-                      {student.tokens.toLocaleString()}
+                      {student.tokens}
                     </span>
                     <span className="ml-1 text-xs admin-text-secondary">токенов</span>
                   </div>

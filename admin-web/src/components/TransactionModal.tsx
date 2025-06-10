@@ -234,7 +234,7 @@ export default function TransactionModal({ isOpen, onClose, onSave }: Transactio
               <p><strong>Операция:</strong> {formData.type === 'credit' ? '💰 Поступление' : '💸 Списание'}</p>
               <p><strong>Сумма:</strong> 
                 <span className={formData.type === 'credit' ? 'text-green-600' : 'text-red-600'}>
-                  {formData.type === 'credit' ? '+' : '-'}{formData.amount.toLocaleString()} токенов
+                  {formData.type === 'credit' ? '+' : '-'}{formData.amount} токенов
                 </span>
               </p>
               {formData.category && <p><strong>Категория:</strong> {formData.category}</p>}

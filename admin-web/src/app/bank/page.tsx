@@ -150,7 +150,7 @@ export default function BankPage() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium admin-text-secondary truncate">Всего токенов</dt>
-                        <dd className="text-lg font-medium text-gray-900">{totalTokens.toLocaleString()}</dd>
+                        <dd className="text-lg font-medium text-gray-900">{totalTokens}</dd>
                       </dl>
                     </div>
                   </div>
@@ -188,7 +188,7 @@ export default function BankPage() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium admin-text-secondary truncate">Доходы за неделю</dt>
-                        <dd className="text-lg font-medium text-gray-900">+{weeklyIncome.toLocaleString()}</dd>
+                        <dd className="text-lg font-medium text-gray-900">+{weeklyIncome}</dd>
                       </dl>
                     </div>
                   </div>
@@ -207,7 +207,7 @@ export default function BankPage() {
                     <div className="ml-5 w-0 flex-1">
                       <dl>
                         <dt className="text-sm font-medium admin-text-secondary truncate">Расходы за неделю</dt>
-                        <dd className="text-lg font-medium text-gray-900">-{weeklyExpense.toLocaleString()}</dd>
+                        <dd className="text-lg font-medium text-gray-900">-{weeklyExpense}</dd>
                       </dl>
                     </div>
                   </div>
@@ -317,14 +317,14 @@ export default function BankPage() {
                               <span className={`text-sm font-medium ${
                                 transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                               }`}>
-                                {transaction.type === 'credit' ? '+' : '-'}{transaction.amount.toLocaleString()}
+                                {transaction.type === 'credit' ? '+' : '-'}{transaction.amount}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {transaction.description}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {transaction.balance.toLocaleString()} токенов
+                              {transaction.balance} токенов
                             </td>
                           </tr>
                         ))}
