@@ -1,16 +1,27 @@
 {
-  "name": "lyceum-admin-web",
+  "name": "lyceum-platform",
   "version": 2,
   "builds": [
     {
       "src": "admin-web/package.json",
       "use": "@vercel/next"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/admin/(.*)",
       "dest": "admin-web/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 } 

@@ -206,9 +206,9 @@ export default function StudentsPage() {
       {/* Основной контент */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Header */}
-        <header className="admin-card shadow" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
+        <header className="shadow" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-6">
+            <div className="flex justify-between items-center py-8">
               <div className="flex items-center">
                 {/* Кнопка меню для мобильных устройств */}
                 <button

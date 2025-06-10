@@ -22,7 +22,7 @@ export default function AdminPanel() {
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
             <h2 className="mt-6 text-3xl font-bold text-gray-900">
-              Админ-портал
+              Вход в личный кабинет
             </h2>
             <p className="mt-2 text-lg text-[#8B2439] font-semibold">
               Лицей-интернат "Подмосковный"
