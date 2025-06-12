@@ -14,19 +14,21 @@ import {
 @Injectable()
 export class StorageService {
   private readonly logger = new Logger(StorageService.name);
-  private s3: AWS.S3;
-  private bucketName: string;
-  private region: string;
-  private publicUrl: string;
+  private s3: AWS.S3 | null = null;
+  private bucketName: string = '';
+  private region: string = '';
+  private publicUrl: string = '';
+  private isS3Initialized = false;
 
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
   ) {
+    // Инициализируем S3 асинхронно, не блокируя загрузку модуля
     this.initializeS3();
   }
 
-  private initializeS3() {
+  private async initializeS3() {
     try {
       const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY');
       const secretAccessKey = this.configService.get<string>('S3_SECRET_KEY');
@@ -37,6 +39,7 @@ export class StorageService {
 
       if (!accessKeyId || !secretAccessKey) {
         this.logger.warn('S3 credentials not found. File storage functionality will be disabled.');
+        this.isS3Initialized = true; // Помечаем как инициализированный, но без S3
         return;
       }
 
@@ -49,9 +52,11 @@ export class StorageService {
         signatureVersion: 'v4',
       });
 
+      this.isS3Initialized = true;
       this.logger.log('S3 client initialized successfully');
     } catch (error) {
-      this.logger.error('Failed to initialize S3 client:', error.message);
+      this.logger.error('Failed to initialize S3 client:', error?.message || error);
+      this.isS3Initialized = true; // Помечаем как инициализированный, но с ошибкой
     }
   }
 
@@ -95,7 +100,7 @@ export class StorageService {
         uploadParams.ACL = 'public-read';
       }
 
-      const result = await this.s3.upload(uploadParams).promise();
+      const result = await this.s3!.upload(uploadParams).promise();
 
       // Сохраняем информацию о файле в БД
       const fileRecord = await this.prisma.file.create({
@@ -163,27 +168,20 @@ export class StorageService {
       });
 
       // Создаем presigned POST URL
-      const postPolicy = {
-        expiration: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 минут
-        conditions: [
-          { bucket: this.bucketName },
-          { key: fileName },
-          { 'Content-Type': createPresignedUrlDto.contentType },
-          ['content-length-range', 0, 100 * 1024 * 1024], // Максимум 100MB
-        ],
-      };
-
-      const params = {
+      const presignedPost = this.s3!.createPresignedPost({
         Bucket: this.bucketName,
         Fields: {
           key: fileName,
           'Content-Type': createPresignedUrlDto.contentType,
         },
         Expires: 900, // 15 минут
-        Conditions: postPolicy.conditions,
-      };
-
-      const presignedPost = this.s3.createPresignedPost(params);
+        Conditions: [
+          { bucket: this.bucketName },
+          { key: fileName },
+          { 'Content-Type': createPresignedUrlDto.contentType },
+          ['content-length-range', 0, 100 * 1024 * 1024], // Максимум 100MB
+        ],
+      });
 
       return {
         uploadUrl: presignedPost.url,
@@ -260,6 +258,7 @@ export class StorageService {
         category: true,
         visibility: true,
         uploadedAt: true,
+        s3Key: true,
       },
     });
 
@@ -326,41 +325,55 @@ export class StorageService {
   }
 
   async getFileCategories(): Promise<string[]> {
-    const categories = await this.prisma.file.findMany({
-      select: { category: true },
-      distinct: ['category'],
-      orderBy: { category: 'asc' },
-    });
+    try {
+      const categories = await this.prisma.file.findMany({
+        select: { category: true },
+        distinct: ['category'],
+        orderBy: { category: 'asc' },
+      });
 
-    return categories.map(c => c.category);
+      return categories.map(c => c.category);
+    } catch (error) {
+      this.logger.error('Failed to get file categories:', error);
+      return ['general', 'documents', 'images', 'videos', 'archives'];
+    }
   }
 
   async getStorageStats(userId: string): Promise<any> {
-    const stats = await this.prisma.file.aggregate({
-      where: { uploadedBy: userId },
-      _count: { _all: true },
-      _sum: { size: true },
-    });
+    try {
+      const stats = await this.prisma.file.aggregate({
+        where: { uploadedBy: userId },
+        _count: { _all: true },
+        _sum: { size: true },
+      });
 
-    const categoryCounts = await this.prisma.file.groupBy({
-      by: ['category'],
-      where: { uploadedBy: userId },
-      _count: { _all: true },
-      _sum: { size: true },
-    });
+      const categoryCounts = await this.prisma.file.groupBy({
+        by: ['category'],
+        where: { uploadedBy: userId },
+        _count: { _all: true },
+        _sum: { size: true },
+      });
 
-    return {
-      totalFiles: stats._count._all,
-      totalSize: stats._sum.size || 0,
-      categories: categoryCounts.map(cat => ({
-        category: cat.category,
-        count: cat._count._all,
-        size: cat._sum.size || 0,
-      })),
-    };
+      return {
+        totalFiles: stats._count._all,
+        totalSize: stats._sum.size || 0,
+        categories: categoryCounts.map(cat => ({
+          category: cat.category,
+          count: cat._count._all,
+          size: cat._sum.size || 0,
+        })),
+      };
+    } catch (error) {
+      this.logger.error('Failed to get storage stats:', error);
+      return {
+        totalFiles: 0,
+        totalSize: 0,
+        categories: [],
+      };
+    }
   }
 
   isAvailable(): boolean {
-    return !!this.s3;
+    return !!this.s3 && this.isS3Initialized;
   }
 } 
