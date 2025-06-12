@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { AuctionsModule } from './auctions/auctions.module';
 import { ContractsModule } from './contracts/contracts.module';
+import { ChatModule } from './chat/chat.module';
 import configuration from './common/config/configuration';
 
 @Module({
@@ -22,6 +23,7 @@ import configuration from './common/config/configuration';
     ProductsModule,
     AuctionsModule,
     ContractsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
