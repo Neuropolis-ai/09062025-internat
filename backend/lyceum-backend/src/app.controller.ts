@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { PrismaService } from './common/prisma.service';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
@@ -44,5 +45,15 @@ export class AppController {
     } catch (error) {
       return { message: 'Database connection failed', error: error.message };
     }
+  }
+
+  @Get('test-storage')
+  @ApiOperation({ summary: 'Тест storage функциональности' })
+  testStorage() {
+    return {
+      success: true,
+      message: 'Storage test endpoint works',
+      timestamp: new Date().toISOString(),
+    };
   }
 }

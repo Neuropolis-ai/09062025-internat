@@ -54,6 +54,7 @@ model User {
   transactionsFrom Transaction[] @relation("TransactionCreator")
   aiConversations AIConversation[]
   uploadedDocuments Document[] @relation("DocumentUploader")
+  uploadedFiles     File[] @relation("FileUploader")
 
   @@map("users")
 }
@@ -601,4 +602,40 @@ enum SettingType {
   NUMBER
   BOOLEAN
   JSON
+}
+
+// ============================================================================
+// ФАЙЛОВОЕ ХРАНИЛИЩЕ
+// ============================================================================
+
+model File {
+  id           String         @id @default(cuid())
+  filename     String
+  s3Key        String         @unique @map("s3_key")
+  size         Int
+  mimeType     String         @map("mime_type")
+  visibility   FileVisibility @default(PRIVATE)
+  category     String         @default("general")
+  description  String?
+  uploadedBy   String         @map("uploaded_by")
+  s3Url        String         @map("s3_url")
+  uploadStatus FileStatus     @default(COMPLETED) @map("upload_status")
+  uploadedAt   DateTime       @default(now()) @map("uploaded_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  // Связи
+  uploader     User           @relation("FileUploader", fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum FileStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }
