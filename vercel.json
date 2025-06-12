@@ -1,12 +1,32 @@
 {
   "name": "lyceum-app",
   "version": 2,
-  "buildCommand": "npm run build:web",
-  "outputDirectory": "dist",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "admin-web/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "buildCommand": "npm run build:web",
+        "outputDirectory": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/app/(.*)",
+      "dest": "/dist/$1"
+    },
+    {
+      "src": "/app",
+      "dest": "/dist/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/admin-web/$1"
     }
   ]
 } 
