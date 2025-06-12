@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏫 Лицей "Подмосковный" - Мобильное Приложение</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: #F2F2F7;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: #8B2439;
+            padding: 50px 20px 20px;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background: #FF4444;
+            color: white;
+            border-radius: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .student-block {
+            background: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid #E5E5EA;
+        }
+
+        .student-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 45px;
+            background: #8B2439;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 4px solid #FFD700;
+            box-shadow: 0 4px 8px rgba(139, 36, 57, 0.3);
+        }
+
+        .welcome-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #8B2439;
+            margin-bottom: 4px;
+        }
+
+        .student-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #8B2439;
+            margin-bottom: 8px;
+        }
+
+        .student-info {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .motivation-text {
+            font-size: 14px;
+            color: #4D8061;
+            font-style: italic;
+        }
+
+        .modules-section {
+            background: white;
+            margin-top: 10px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #8B2439;
+            margin-bottom: 20px;
+        }
+
+        .module-card {
+            display: flex;
+            align-items: center;
+            padding: 18px 16px;
+            margin-bottom: 12px;
+            background: #F8F8F8;
+            border-radius: 16px;
+            border: 2px solid #E5E5EA;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .bank-card { border-left: 4px solid #FFD700; background: #FFFEF7; }
+        .grades-card { border-left: 4px solid #4CAF50; background: #F8FFF8; }
+        .contracts-card { border-left: 4px solid #2196F3; background: #F7FAFF; }
+        .republic-card { border-left: 4px solid #FF5722; background: #FFF8F7; }
+        .terms-card { border-left: 4px solid #9C27B0; background: #FDF7FF; }
+        .faq-card { border-left: 4px solid #E91E63; background: #FDF8FB; }
+
+        .module-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            box-shadow: 0 2px 4px rgba(139, 36, 57, 0.15);
+            border: 2px solid #FFE4E1;
+            font-size: 32px;
+        }
+
+        .module-content {
+            flex: 1;
+        }
+
+        .module-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8B2439;
+            margin-bottom: 4px;
+        }
+
+        .module-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 20px;
+        }
+
+        .demo-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+
+        .demo-info h3 {
+            color: #8B2439;
+            margin-bottom: 10px;
+        }
+
+        .demo-info ul {
+            margin-left: 20px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .demo-info {
+                position: static;
+                margin-bottom: 20px;
+                max-width: 100%;
+            }
+            
+            .phone-container {
+                width: 100%;
+                max-width: 375px;
+                height: auto;
+                min-height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-info">
+        <h3>🎨 Обновления дизайна</h3>
+        <ul>
+            <li>✨ Веселые эмодзи-иконки</li>
+            <li>🎯 Мотивационные элементы</li>
+            <li>🌈 Цветные акценты</li>
+            <li>💫 Интерактивные эффекты</li>
+        </ul>
+    </div>
+
+    <div class="phone-container">
+        <div class="phone-screen">
+            <!-- Шапка -->
+            <div class="header">
+                <h1>🏫 Лицей "Подмосковный"</h1>
+                <div class="notification-badge">3</div>
+            </div>
+
+            <!-- Информация о студенте -->
+            <div class="student-block">
+                <div class="student-photo">🎓</div>
+                <div class="welcome-text">Привет, Александр! 👋</div>
+                <div class="student-name">Александр Иванов</div>
+                <div class="student-info">🏛️ 8Б класс • 🏠 коттедж №3</div>
+                <div class="motivation-text">✨ Сегодня отличный день для достижений! ✨</div>
+            </div>
+
+            <!-- Основные модули -->
+            <div class="modules-section">
+                <div class="section-title">🚀 Основные разделы</div>
+                
+                <div class="module-card bank-card">
+                    <div class="module-icon">💳</div>
+                    <div class="module-content">
+                        <div class="module-title">Лицейский банк</div>
+                        <div class="module-description">💰 Управляй своим кошельком и копи баллы!</div>
+                    </div>
+                </div>
+
+                <div class="module-card grades-card">
+                    <div class="module-icon">📊</div>
+                    <div class="module-content">
+                        <div class="module-title">Успеваемость</div>
+                        <div class="module-description">⭐ Следи за рейтингом и покори топ!</div>
+                    </div>
+                </div>
+
+                <div class="module-card contracts-card">
+                    <div class="module-icon">📋</div>
+                    <div class="module-content">
+                        <div class="module-title">Госзаказы</div>
+                        <div class="module-description">💼 Участвуй в проектах и зарабатывай опыт!</div>
+                    </div>
+                </div>
+
+                <div class="module-card republic-card">
+                    <div class="module-icon">🏛️</div>
+                    <div class="module-content">
+                        <div class="module-title">Республика</div>
+                        <div class="module-description">🗳️ Будь активным гражданином лицея!</div>
+                    </div>
+                </div>
+
+                <div class="module-card terms-card">
+                    <div class="module-icon">📄</div>
+                    <div class="module-content">
+                        <div class="module-title">Правила</div>
+                        <div class="module-description">📖 Изучи правила игры в лицее!</div>
+                    </div>
+                </div>
+
+                <div class="module-card faq-card">
+                    <div class="module-icon">❓</div>
+                    <div class="module-content">
+                        <div class="module-title">FAQ</div>
+                        <div class="module-description">💡 Ответы на частые вопросы лицеистов!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Добавляем интерактивность к карточкам модулей
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.module-title').textContent;
+                alert(`🚀 Переход к модулю: ${title}`);
+            });
+        });
+
+        // Анимация появления карточек
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.querySelectorAll('.module-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.6s, transform 0.6s';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html> 
