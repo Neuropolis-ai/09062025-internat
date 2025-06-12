@@ -299,4 +299,27 @@ export class AuctionsService {
       },
     });
   }
+
+  async activateAuction(auctionId: string): Promise<Auction> {
+    const auction = await this.findOne(auctionId);
+
+    if (auction.status !== 'DRAFT') {
+      throw new BadRequestException('Можно активировать только черновики аукционов');
+    }
+
+    if (new Date() < auction.startTime) {
+      throw new BadRequestException('Время начала аукциона еще не наступило');
+    }
+
+    if (new Date() > auction.endTime) {
+      throw new BadRequestException('Время аукциона уже прошло');
+    }
+
+    return this.prisma.auction.update({
+      where: { id: auctionId },
+      data: {
+        status: 'ACTIVE',
+      },
+    });
+  }
 }

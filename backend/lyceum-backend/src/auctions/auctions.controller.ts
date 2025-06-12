@@ -8,7 +8,6 @@ import {
   Delete,
   HttpStatus,
   HttpCode,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -17,6 +16,8 @@ import { CreateAuctionDto } from './dto/create-auction.dto';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
 import { PlaceBidDto } from './dto/place-bid.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('auctions')
 @Controller('auctions')
@@ -30,8 +31,8 @@ export class AuctionsController {
   @ApiResponse({ status: 201, description: 'Аукцион успешно создан' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
   @ApiResponse({ status: 401, description: 'Не авторизован' })
-  async create(@Body() createAuctionDto: CreateAuctionDto, @Request() req: any) {
-    return this.auctionsService.create(createAuctionDto, req.user.userId);
+  async create(@Body() createAuctionDto: CreateAuctionDto, @CurrentUser() user: User) {
+    return this.auctionsService.create(createAuctionDto, user.id);
   }
 
   @Get()
@@ -77,9 +78,9 @@ export class AuctionsController {
   async placeBid(
     @Param('id') auctionId: string,
     @Body() placeBidDto: PlaceBidDto,
-    @Request() req: any,
+    @CurrentUser() user: User,
   ) {
-    return this.auctionsService.placeBid(auctionId, req.user.userId, placeBidDto);
+    return this.auctionsService.placeBid(auctionId, user.id, placeBidDto);
   }
 
   @Get(':id/bids')
@@ -97,5 +98,14 @@ export class AuctionsController {
   @ApiResponse({ status: 404, description: 'Аукцион не найден' })
   async closeAuction(@Param('id') auctionId: string) {
     return this.auctionsService.closeAuction(auctionId);
+  }
+
+  @Post(':id/activate')
+  @ApiOperation({ summary: 'Активировать аукцион' })
+  @ApiResponse({ status: 200, description: 'Аукцион активирован' })
+  @ApiResponse({ status: 400, description: 'Невозможно активировать аукцион' })
+  @ApiResponse({ status: 404, description: 'Аукцион не найден' })
+  async activateAuction(@Param('id') auctionId: string) {
+    return this.auctionsService.activateAuction(auctionId);
   }
 }
