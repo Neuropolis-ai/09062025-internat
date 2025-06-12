@@ -8,7 +8,6 @@ import {
   Delete, 
   Query, 
   UseGuards,
-  Request,
   HttpCode,
   HttpStatus 
 } from '@nestjs/common';
@@ -17,6 +16,9 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PurchaseProductDto } from './dto/purchase-product.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { User } from '@prisma/client';
 
 @ApiTags('products')
 @Controller('products')
@@ -24,20 +26,20 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Создать новый товар (только для администраторов)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Создать новый товар' })
   @ApiResponse({ status: 201, description: 'Товар успешно создан' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
-  @ApiResponse({ status: 403, description: 'Недостаточно прав' })
-  async create(@Body() createProductDto: CreateProductDto, @Request() req: any) {
-    // TODO: Добавить проверку роли администратора
-    const createdBy = req.user?.id || 'cmbtcux840000ryh1ud584lg2'; // Используем существующего пользователя
-    return this.productsService.create(createProductDto, createdBy);
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
+  async create(@Body() createProductDto: CreateProductDto, @CurrentUser() user: User) {
+    return this.productsService.create(createProductDto, user.id);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Получить список всех товаров' })
-  @ApiQuery({ name: 'includeInactive', required: false, type: Boolean, description: 'Включить неактивные товары' })
+  @ApiOperation({ summary: 'Получить список товаров' })
   @ApiResponse({ status: 200, description: 'Список товаров получен' })
+  @ApiQuery({ name: 'includeInactive', required: false, description: 'Включить неактивные товары' })
   async findAll(@Query('includeInactive') includeInactive?: string) {
     const includeInactiveBool = includeInactive === 'true';
     return this.productsService.findAll(includeInactiveBool);
@@ -52,47 +54,57 @@ export class ProductsController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Обновить товар (только для администраторов)' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Обновить товар' })
   @ApiResponse({ status: 200, description: 'Товар успешно обновлен' })
   @ApiResponse({ status: 404, description: 'Товар не найден' })
-  @ApiResponse({ status: 403, description: 'Недостаточно прав' })
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
   async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Удалить товар (деактивировать)' })
-  @ApiResponse({ status: 200, description: 'Товар успешно деактивирован' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Удалить товар' })
+  @ApiResponse({ status: 200, description: 'Товар успешно удален' })
   @ApiResponse({ status: 404, description: 'Товар не найден' })
-  @ApiResponse({ status: 403, description: 'Недостаточно прав' })
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
   async remove(@Param('id') id: string) {
     return this.productsService.remove(id);
   }
 
   @Post('purchase')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Купить товар' })
   @ApiResponse({ status: 200, description: 'Покупка успешно совершена' })
   @ApiResponse({ status: 400, description: 'Ошибка при покупке' })
   @ApiResponse({ status: 404, description: 'Товар не найден' })
-  async purchase(@Body() purchaseDto: PurchaseProductDto, @Request() req: any) {
-    // TODO: Получать userId из JWT токена
-    const userId = req.user?.id || 'cmbtcux840000ryh1ud584lg2'; // Временно для тестирования
-    return this.productsService.purchase(userId, purchaseDto);
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
+  async purchase(@Body() purchaseDto: PurchaseProductDto, @CurrentUser() user: User) {
+    return this.productsService.purchase(user.id, purchaseDto);
   }
 
   @Get('purchases/my')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить мои покупки' })
   @ApiResponse({ status: 200, description: 'Список покупок получен' })
-  async getMyPurchases(@Request() req: any) {
-    const userId = req.user?.id || 'cmbtcux840000ryh1ud584lg2'; // Временно для тестирования
-    return this.productsService.getUserPurchases(userId);
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
+  async getMyPurchases(@CurrentUser() user: User) {
+    return this.productsService.getUserPurchases(user.id);
   }
 
   @Get(':id/purchases')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить покупки конкретного товара (для администраторов)' })
   @ApiResponse({ status: 200, description: 'Список покупок товара получен' })
   @ApiResponse({ status: 404, description: 'Товар не найден' })
+  @ApiResponse({ status: 401, description: 'Не авторизован' })
   async getProductPurchases(@Param('id') id: string) {
     return this.productsService.getProductPurchases(id);
   }

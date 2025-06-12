@@ -120,6 +120,26 @@ export class AuthService {
     return null;
   }
 
+  async refreshTokens(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+    try {
+      // Проверяем refresh токен
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('jwt.refreshSecret'),
+      }) as JwtPayload;
+
+      // Находим пользователя
+      const user = await this.usersService.findOne(payload.sub);
+      if (!user || !user.isActive) {
+        throw new UnauthorizedException('Пользователь не найден или заблокирован');
+      }
+
+      // Генерируем новые токены
+      return this.generateTokens(user);
+    } catch (error) {
+      throw new UnauthorizedException('Недействительный refresh токен');
+    }
+  }
+
   private async generateTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {
     const payload: JwtPayload = {
       sub: user.id,
