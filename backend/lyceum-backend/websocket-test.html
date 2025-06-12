@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test - Auctions</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        input, button { margin: 5px; padding: 8px; }
+        #messages { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
+        .message { margin: 5px 0; padding: 5px; border-left: 3px solid #007bff; }
+        .error { border-left-color: #dc3545; }
+        .success { border-left-color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Test - Auctions</h1>
+        
+        <div class="section">
+            <h3>Подключение</h3>
+            <input type="text" id="tokenInput" placeholder="JWT Token" style="width: 400px;">
+            <button onclick="connect()">Подключиться</button>
+            <button onclick="disconnect()">Отключиться</button>
+            <p>Статус: <span id="status">Отключен</span></p>
+        </div>
+
+        <div class="section">
+            <h3>Управление аукционами</h3>
+            <input type="text" id="auctionIdInput" placeholder="ID аукциона">
+            <button onclick="joinAuction()">Присоединиться к аукциону</button>
+            <button onclick="leaveAuction()">Покинуть аукцион</button>
+        </div>
+
+        <div class="section">
+            <h3>Сообщения</h3>
+            <div id="messages"></div>
+            <button onclick="clearMessages()">Очистить</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        let socket = null;
+        const messagesDiv = document.getElementById('messages');
+        const statusSpan = document.getElementById('status');
+
+        function addMessage(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${JSON.stringify(message, null, 2)}`;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            const token = document.getElementById('tokenInput').value;
+            if (!token) {
+                alert('Введите JWT токен');
+                return;
+            }
+
+            if (socket) {
+                socket.disconnect();
+            }
+
+            socket = io('http://localhost:3000/auctions', {
+                auth: {
+                    token: token
+                }
+            });
+
+            socket.on('connect', () => {
+                statusSpan.textContent = 'Подключен';
+                statusSpan.style.color = 'green';
+                addMessage('Подключен к WebSocket', 'success');
+            });
+
+            socket.on('disconnect', () => {
+                statusSpan.textContent = 'Отключен';
+                statusSpan.style.color = 'red';
+                addMessage('Отключен от WebSocket', 'error');
+            });
+
+            socket.on('connected', (data) => {
+                addMessage(data, 'success');
+            });
+
+            socket.on('error', (data) => {
+                addMessage(data, 'error');
+            });
+
+            socket.on('joinedAuction', (data) => {
+                addMessage(data, 'success');
+            });
+
+            socket.on('leftAuction', (data) => {
+                addMessage(data, 'success');
+            });
+
+            socket.on('newBid', (data) => {
+                addMessage({ type: 'NEW_BID', ...data }, 'info');
+            });
+
+            socket.on('auctionUpdate', (data) => {
+                addMessage({ type: 'AUCTION_UPDATE', ...data }, 'info');
+            });
+
+            socket.on('auctionClosed', (data) => {
+                addMessage({ type: 'AUCTION_CLOSED', ...data }, 'info');
+            });
+
+            socket.on('auctionActivated', (data) => {
+                addMessage({ type: 'AUCTION_ACTIVATED', ...data }, 'info');
+            });
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        function joinAuction() {
+            const auctionId = document.getElementById('auctionIdInput').value;
+            if (!auctionId) {
+                alert('Введите ID аукциона');
+                return;
+            }
+
+            if (!socket) {
+                alert('Сначала подключитесь к WebSocket');
+                return;
+            }
+
+            socket.emit('joinAuction', { auctionId });
+        }
+
+        function leaveAuction() {
+            const auctionId = document.getElementById('auctionIdInput').value;
+            if (!auctionId) {
+                alert('Введите ID аукциона');
+                return;
+            }
+
+            if (!socket) {
+                alert('Сначала подключитесь к WebSocket');
+                return;
+            }
+
+            socket.emit('leaveAuction', { auctionId });
+        }
+
+        function clearMessages() {
+            messagesDiv.innerHTML = '';
+        }
+    </script>
+</body>
+</html> 

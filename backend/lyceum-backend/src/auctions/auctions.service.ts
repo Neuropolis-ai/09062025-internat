@@ -1,13 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { Auction, AuctionBid, Prisma } from '@prisma/client';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
 import { PlaceBidDto } from './dto/place-bid.dto';
+import { AuctionsGateway } from './auctions.gateway';
 
 @Injectable()
 export class AuctionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => AuctionsGateway))
+    private auctionsGateway: AuctionsGateway,
+  ) {}
 
   async create(createAuctionDto: CreateAuctionDto, createdBy: string): Promise<Auction> {
     const startTime = new Date(createAuctionDto.startTime);
@@ -182,7 +187,7 @@ export class AuctionsService {
     }
 
     // Создание ставки и обновление аукциона в транзакции
-    return this.prisma.$transaction(async (prisma) => {
+    const result = await this.prisma.$transaction(async (prisma) => {
       const bid = await prisma.auctionBid.create({
         data: {
           auctionId,
@@ -200,16 +205,25 @@ export class AuctionsService {
         },
       });
 
+      // Обновляем текущую цену аукциона
       await prisma.auction.update({
         where: { id: auctionId },
         data: {
           currentPrice: placeBidDto.amount,
-          winnerId: bidderId,
         },
       });
 
       return bid;
     });
+
+    // Отправляем WebSocket уведомление о новой ставке
+    try {
+      await this.auctionsGateway.notifyNewBid(auctionId, result);
+    } catch (error) {
+      console.error('Failed to send WebSocket notification:', error);
+    }
+
+    return result;
   }
 
   async getAuctionBids(auctionId: string): Promise<AuctionBid[]> {
@@ -239,65 +253,106 @@ export class AuctionsService {
       throw new BadRequestException('Аукцион не активен');
     }
 
-    // Если есть победитель, списываем средства
-    if (auction.winnerId) {
+    // Получаем последнюю (выигрышную) ставку
+    const winningBid = await this.prisma.auctionBid.findFirst({
+      where: { auctionId },
+      orderBy: { amount: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    let updatedAuction: Auction;
+
+    if (winningBid) {
+      // Выполняем транзакции для перевода средств
       await this.prisma.$transaction(async (prisma) => {
-        // Списываем средства с победителя
+        // Списываем средства с покупателя
         await prisma.account.updateMany({
-          where: { 
-            userId: auction.winnerId!,
-            accountType: 'CHECKING'
+          where: {
+            userId: winningBid.userId,
+            accountType: 'CHECKING',
           },
           data: {
             balance: {
-              decrement: auction.currentPrice,
+              decrement: winningBid.amount,
             },
           },
         });
 
-        // Начисляем средства создателю аукциона
+        // Начисляем средства продавцу
         await prisma.account.updateMany({
-          where: { 
+          where: {
             userId: auction.createdBy,
-            accountType: 'CHECKING'
+            accountType: 'CHECKING',
           },
           data: {
             balance: {
-              increment: auction.currentPrice,
+              increment: winningBid.amount,
             },
           },
         });
 
-        // Создаем транзакции
+        // Создаем записи о транзакциях
         await prisma.transaction.createMany({
           data: [
             {
-              amount: Number(auction.currentPrice) * -1,
+              amount: winningBid.amount,
               transactionType: 'DEBIT',
-              description: `Покупка лота "${auction.title}" на аукционе`,
+              description: `Покупка на аукционе: ${auction.title}`,
               referenceId: auctionId,
               referenceType: 'AUCTION',
-              createdBy: auction.winnerId!,
+              status: 'COMPLETED',
+              createdBy: winningBid.userId,
             },
             {
-              amount: Number(auction.currentPrice),
+              amount: winningBid.amount,
               transactionType: 'CREDIT',
-              description: `Продажа лота "${auction.title}" на аукционе`,
+              description: `Продажа на аукционе: ${auction.title}`,
               referenceId: auctionId,
               referenceType: 'AUCTION',
+              status: 'COMPLETED',
               createdBy: auction.createdBy,
             },
           ],
         });
       });
+
+      // Обновляем аукцион с победителем
+      updatedAuction = await this.prisma.auction.update({
+        where: { id: auctionId },
+        data: {
+          status: 'COMPLETED',
+          winnerId: winningBid.userId,
+        },
+      });
+    } else {
+      // Закрываем аукцион без победителя
+      updatedAuction = await this.prisma.auction.update({
+        where: { id: auctionId },
+        data: {
+          status: 'COMPLETED',
+        },
+      });
     }
 
-    return this.prisma.auction.update({
-      where: { id: auctionId },
-      data: {
-        status: 'COMPLETED',
-      },
-    });
+    // Отправляем WebSocket уведомление о закрытии аукциона
+    try {
+      await this.auctionsGateway.notifyAuctionClosed(auctionId, {
+        auction: updatedAuction,
+        winningBid,
+      });
+    } catch (error) {
+      console.error('Failed to send WebSocket notification:', error);
+    }
+
+    return updatedAuction;
   }
 
   async activateAuction(auctionId: string): Promise<Auction> {
@@ -307,19 +362,20 @@ export class AuctionsService {
       throw new BadRequestException('Можно активировать только черновики аукционов');
     }
 
-    if (new Date() < auction.startTime) {
-      throw new BadRequestException('Время начала аукциона еще не наступило');
-    }
-
-    if (new Date() > auction.endTime) {
-      throw new BadRequestException('Время аукциона уже прошло');
-    }
-
-    return this.prisma.auction.update({
+    const updatedAuction = await this.prisma.auction.update({
       where: { id: auctionId },
       data: {
         status: 'ACTIVE',
       },
     });
+
+    // Отправляем WebSocket уведомление об активации аукциона
+    try {
+      await this.auctionsGateway.notifyAuctionActivated(auctionId, updatedAuction);
+    } catch (error) {
+      console.error('Failed to send WebSocket notification:', error);
+    }
+
+    return updatedAuction;
   }
 }
