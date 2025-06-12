@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+:root {
+  /* Фирменные цвета лицея согласно брендбуку */
+  --primary-burgundy: #8B2439;
+  --primary-burgundy-dark: #7A1F32;
+  --background-light: #f8f9fa;
+  --background-white: #FFFFFF;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --divider: #dee2e6;
+  --divider-light: #e9ecef;
+  --notification-red: #dc3545;
+  --success-green: #28a745;
+  --warning-yellow: #ffc107;
+  --info-blue: #17a2b8;
+  
+  /* Основные переменные */
+  --background: var(--background-light);
+  --foreground: var(--text-primary);
+  --card-background: var(--background-white);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary-burgundy);
+  --color-card: var(--card-background);
+  --color-secondary: var(--text-secondary);
+  --color-border: var(--divider);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* Убираем темную тему для админ-панели */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Базовые стили для админ-панели */
+.admin-container {
+  background: var(--background-light);
+  min-height: 100vh;
+}
+
+.admin-card {
+  background: var(--background-white);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-card-shadow {
+  background: var(--background-white);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-button-primary {
+  background: var(--primary-burgundy);
+  color: white;
+  border: 1px solid var(--primary-burgundy);
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.admin-button-primary:hover {
+  background: var(--primary-burgundy-dark);
+  border-color: var(--primary-burgundy-dark);
+}
+
+.admin-button-secondary {
+  background: transparent;
+  color: var(--primary-burgundy);
+  border: 1px solid var(--primary-burgundy);
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.admin-button-secondary:hover {
+  background: var(--primary-burgundy);
+  color: white;
+}
+
+.admin-text-secondary {
+  color: var(--text-secondary);
+}
+
+.admin-border {
+  border-color: var(--divider);
+}
+
+/* Стили для форм */
+.admin-input {
+  border: 1px solid var(--divider);
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: var(--background-white);
+  transition: all 0.2s ease;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: var(--primary-burgundy);
+  box-shadow: 0 0 0 3px rgba(139, 36, 57, 0.1);
+}
+
+/* Стили для таблиц */
+.admin-table {
+  background: var(--background-white);
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-table th {
+  background: #f8f9fa;
+  border-bottom: 2px solid var(--divider);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 12px 16px;
+}
+
+.admin-table td {
+  border-bottom: 1px solid var(--divider-light);
+  padding: 12px 16px;
+}
+
+.admin-table tbody tr:hover {
+  background-color: rgba(139, 36, 57, 0.02);
+}
+
+/* Стили для статусов */
+.status-active {
+  background: var(--success-green);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-inactive {
+  background: var(--text-secondary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-warning {
+  background: var(--warning-yellow);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Стили для модальных окон */
+.admin-modal {
+  background: var(--background-white);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Стили для карточек товаров и элементов */
+.product-card, .item-card {
+  background: var(--background-white);
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.product-card:hover, .item-card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Анимации */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
