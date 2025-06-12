@@ -15,18 +15,40 @@
       }
     }
   ],
+  "functions": {
+    "admin-web/**": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/app",
-      "destination": "/dist/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/app/(.*)",
-      "destination": "/dist/$1"
+      "destination": "/$1"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/admin-web/(.*)",
+      "dest": "/admin-web/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/admin-web/$1"
+      "src": "/admin/(.*)",
+      "dest": "/admin-web/$1"
+    },
+    {
+      "src": "/(admin|students|bank|shop|auction|notifications|rules|faq|contracts)(.*)",
+      "dest": "/admin-web/$1$2"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/admin-web/$1"
     }
   ]
 } 
