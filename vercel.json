@@ -5,47 +5,9 @@
     {
       "src": "admin-web/package.json",
       "use": "@vercel/next"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "npm run build",
-        "outputDirectory": "dist"
-      }
-    }
-  ],
-  "functions": {
-    "admin-web/**": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/app",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/app/(.*)",
-      "destination": "/$1"
     }
   ],
   "routes": [
-    {
-      "src": "/admin-web/(.*)",
-      "dest": "/admin-web/$1"
-    },
-    {
-      "src": "/admin/(.*)",
-      "dest": "/admin-web/$1"
-    },
-    {
-      "src": "/(admin|students|bank|shop|auction|notifications|rules|faq|contracts)(.*)",
-      "dest": "/admin-web/$1$2"
-    },
-    {
-      "handle": "filesystem"
-    },
     {
       "src": "/(.*)",
       "dest": "/admin-web/$1"

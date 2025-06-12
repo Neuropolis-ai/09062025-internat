@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#8B2439" />
+    <meta name="description" content="Мобильное приложение Лицей-интернат Подмосковный" />
+    
+    <title>Лицей-интернат "Подмосковный"</title>
+    
+    <!-- PWA metadata -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Лицей-интернат Подмосковный" />
+    <meta property="og:description" content="Мобильное приложение лицея" />
+    <meta property="og:image" content="/preview.png" />
+    
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #FAFAFA;
+        }
+        
+        #root {
+            display: flex;
+            flex: 1;
+            min-height: 100vh;
+        }
+        
+        /* Loading spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8B2439;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <noscript>Вам необходимо включить JavaScript для запуска этого приложения.</noscript>
+    
+    <div id="root">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px; color: #8B2439; font-weight: 500;">
+                Загрузка приложения лицея...
+            </p>
+        </div>
+    </div>
+<script src="/_expo/static/js/web/entry-9d47ff99fd417dd63dee8188a5cdb6a9.js" defer></script>
+</body>
+</html> 
