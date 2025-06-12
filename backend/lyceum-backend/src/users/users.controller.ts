@@ -58,4 +58,12 @@ export class UsersController {
   async remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
+  @Post(':id/add-balance')
+  @ApiOperation({ summary: 'Пополнить баланс пользователя (для тестирования)' })
+  @ApiResponse({ status: 200, description: 'Баланс успешно пополнен' })
+  @ApiResponse({ status: 404, description: 'Пользователь не найден' })
+  async addBalance(@Param('id') id: string, @Body() body: { amount: number }) {
+    return this.usersService.addBalance(id, body.amount);
+  }
 } 

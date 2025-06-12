@@ -5,6 +5,9 @@ import { AppService } from './app.service';
 import { PrismaService } from './common/prisma.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { ProductsModule } from './products/products.module';
+import { AuctionsModule } from './auctions/auctions.module';
+import { ContractsModule } from './contracts/contracts.module';
 import configuration from './common/config/configuration';
 
 @Module({
@@ -16,6 +19,9 @@ import configuration from './common/config/configuration';
     }),
     UsersModule,
     AuthModule,
+    ProductsModule,
+    AuctionsModule,
+    ContractsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

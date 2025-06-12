@@ -86,8 +86,11 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<User> {
-    return this.prisma.user.delete({
+    const user = await this.findOne(id);
+    
+    return this.prisma.user.update({
       where: { id },
+      data: { isActive: false },
     });
   }
 
@@ -103,5 +106,50 @@ export class UsersService {
     }
 
     return innl;
+  }
+
+  async addBalance(userId: string, amount: number): Promise<any> {
+    const user = await this.findOne(userId);
+    
+    // Получаем расчетный счет пользователя
+    const checkingAccount = await this.prisma.account.findFirst({
+      where: {
+        userId,
+        accountType: 'CHECKING',
+      },
+    });
+
+    if (!checkingAccount) {
+      throw new Error('Расчетный счет не найден');
+    }
+
+    // Пополняем баланс
+    const updatedAccount = await this.prisma.account.update({
+      where: { id: checkingAccount.id },
+      data: {
+        balance: {
+          increment: amount,
+        },
+      },
+    });
+
+    // Создаем запись о транзакции
+    await this.prisma.transaction.create({
+      data: {
+        toAccountId: checkingAccount.id,
+        amount,
+        transactionType: 'CREDIT',
+        description: `Пополнение баланса на ${amount} L-Coin`,
+        status: 'COMPLETED',
+        processedAt: new Date(),
+        createdBy: userId,
+      },
+    });
+
+    return {
+      message: `Баланс пополнен на ${amount} L-Coin`,
+      newBalance: Number(updatedAccount.balance),
+      accountNumber: updatedAccount.accountNumber,
+    };
   }
 } 
