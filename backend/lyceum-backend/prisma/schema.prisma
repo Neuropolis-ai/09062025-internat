@@ -1,0 +1,604 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============================================================================
+// ОСНОВНЫЕ СУЩНОСТИ ПОЛЬЗОВАТЕЛЕЙ И СТРУКТУРЫ ЛИЦЕЯ
+// ============================================================================
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String    @map("password_hash")
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  classId         String?   @map("class_id")
+  cottageId       String?   @map("cottage_id")
+  innl            String    @unique @map("innl") // Лицейский ИНН
+  avatarUrl       String?   @map("avatar_url")
+  phone           String?
+  birthDate       DateTime? @map("birth_date")
+  role            UserRole  @default(STUDENT)
+  isActive        Boolean   @default(true) @map("is_active")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Связи
+  class           Class?    @relation(fields: [classId], references: [id])
+  cottage         Cottage?  @relation(fields: [cottageId], references: [id])
+  accounts        Account[]
+  purchases       Purchase[]
+  auctionBids     AuctionBid[]
+  contractBids    ContractBid[]
+  notifications   UserNotification[]
+  achievements    UserAchievement[]
+  positions       UserPosition[]
+  belongings      UserBelonging[]
+  createdProducts Product[] @relation("ProductCreator")
+  createdAuctions Auction[] @relation("AuctionCreator")
+  createdContracts Contract[] @relation("ContractCreator")
+  wonAuctions     Auction[] @relation("AuctionWinner")
+  transactionsFrom Transaction[] @relation("TransactionCreator")
+  aiConversations AIConversation[]
+  uploadedDocuments Document[] @relation("DocumentUploader")
+
+  @@map("users")
+}
+
+model Class {
+  id            String    @id @default(cuid())
+  name          String    // "8А", "9Б"
+  academicYear  String    @map("academic_year")
+  gradeLevel    Int       @map("grade_level") // 8, 9, 10, 11
+  classTeacherId String?  @map("class_teacher_id")
+  capacity      Int       @default(30)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Связи
+  students      User[]
+
+  @@map("classes")
+}
+
+model Cottage {
+  id           String    @id @default(cuid())
+  name         String    // "Коттедж №1"
+  number       Int       @unique
+  capacity     Int
+  supervisorId String?   @map("supervisor_id")
+  description  String?
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Связи
+  residents    User[]
+
+  @@map("cottages")
+}
+
+// ============================================================================
+// ФИНАНСОВАЯ СИСТЕМА (L-COIN)
+// ============================================================================
+
+model Account {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  accountNumber String      @unique @map("account_number")
+  accountType   AccountType @map("account_type")
+  balance       Decimal     @default(0)
+  creditLimit   Decimal?    @map("credit_limit")
+  isFrozen      Boolean     @default(false) @map("is_frozen")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Связи
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactionsFrom  Transaction[] @relation("FromAccount")
+  transactionsTo    Transaction[] @relation("ToAccount")
+
+  @@map("accounts")
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  fromAccountId   String?           @map("from_account_id")
+  toAccountId     String?           @map("to_account_id")
+  amount          Decimal          
+  transactionType TransactionType   @map("transaction_type")
+  description     String?
+  referenceId     String?           @map("reference_id")
+  referenceType   TransactionReference? @map("reference_type")
+  status          TransactionStatus @default(PENDING)
+  processedAt     DateTime?         @map("processed_at")
+  createdBy       String            @map("created_by")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Связи
+  fromAccount     Account?          @relation("FromAccount", fields: [fromAccountId], references: [id])
+  toAccount       Account?          @relation("ToAccount", fields: [toAccountId], references: [id])
+  creator         User              @relation("TransactionCreator", fields: [createdBy], references: [id])
+
+  @@map("transactions")
+}
+
+// ============================================================================
+// L-SHOP (МАГАЗИН)
+// ============================================================================
+
+model ProductCategory {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  parentId    String?   @map("parent_id")
+  sortOrder   Int       @default(0) @map("sort_order")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Связи
+  parent      ProductCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    ProductCategory[] @relation("CategoryHierarchy")
+  products    Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  price         Decimal  
+  imageUrl      String?   @map("image_url")
+  categoryId    String?   @map("category_id")
+  stockQuantity Int       @default(-1) @map("stock_quantity") // -1 = неограниченно
+  isActive      Boolean   @default(true) @map("is_active")
+  createdBy     String    @map("created_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Связи
+  category      ProductCategory? @relation(fields: [categoryId], references: [id])
+  creator       User      @relation("ProductCreator", fields: [createdBy], references: [id])
+  purchases     Purchase[]
+
+  @@map("products")
+}
+
+model Purchase {
+  id            String          @id @default(cuid())
+  userId        String          @map("user_id")
+  productId     String          @map("product_id")
+  quantity      Int
+  unitPrice     Decimal         @map("unit_price")
+  totalAmount   Decimal         @map("total_amount")
+  transactionId String?         @map("transaction_id")
+  status        PurchaseStatus  @default(PENDING)
+  purchasedAt   DateTime?       @map("purchased_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  // Связи
+  user          User            @relation(fields: [userId], references: [id])
+  product       Product         @relation(fields: [productId], references: [id])
+
+  @@map("purchases")
+}
+
+// ============================================================================
+// АУКЦИОН
+// ============================================================================
+
+model Auction {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  imageUrl        String?       @map("image_url")
+  startingPrice   Decimal       @map("starting_price")
+  currentPrice    Decimal       @map("current_price")
+  minBidIncrement Decimal       @default(1.00) @map("min_bid_increment")
+  startTime       DateTime      @map("start_time")
+  endTime         DateTime      @map("end_time")
+  status          AuctionStatus @default(DRAFT)
+  winnerId        String?       @map("winner_id")
+  createdBy       String        @map("created_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Связи
+  creator         User          @relation("AuctionCreator", fields: [createdBy], references: [id])
+  winner          User?         @relation("AuctionWinner", fields: [winnerId], references: [id])
+  bids            AuctionBid[]
+
+  @@map("auctions")
+}
+
+model AuctionBid {
+  id        String   @id @default(cuid())
+  auctionId String   @map("auction_id")
+  userId    String   @map("user_id")
+  amount    Decimal 
+  isWinning Boolean  @default(false) @map("is_winning")
+  placedAt  DateTime @default(now()) @map("placed_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Связи
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("auction_bids")
+}
+
+// ============================================================================
+// ГОСКОНТРАКТЫ
+// ============================================================================
+
+model Contract {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  rewardAmount    Decimal        @map("reward_amount")
+  requirements    String?
+  category        String?
+  deadline        DateTime?
+  maxParticipants Int            @default(1) @map("max_participants")
+  status          ContractStatus @default(OPEN)
+  createdBy       String         @map("created_by")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  // Связи
+  creator         User           @relation("ContractCreator", fields: [createdBy], references: [id])
+  bids            ContractBid[]
+
+  @@map("contracts")
+}
+
+model ContractBid {
+  id         String    @id @default(cuid())
+  contractId String    @map("contract_id")
+  userId     String    @map("user_id")
+  bidAmount  Decimal   @map("bid_amount")
+  comment    String?
+  status     BidStatus @default(PENDING)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  // Связи
+  contract   Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@map("contract_bids")
+}
+
+// ============================================================================
+// УВЕДОМЛЕНИЯ
+// ============================================================================
+
+model Notification {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  type        NotificationType @default(GENERAL)
+  isGlobal    Boolean  @default(false) @map("is_global")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Связи
+  userNotifications UserNotification[]
+
+  @@map("notifications")
+}
+
+model UserNotification {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  notificationId String   @map("notification_id")
+  isRead         Boolean  @default(false) @map("is_read")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Связи
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@map("user_notifications")
+}
+
+// ============================================================================
+// ЛИЦЕЙСКАЯ РЕСПУБЛИКА
+// ============================================================================
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  iconUrl     String?  @map("icon_url")
+  category    String?
+  points      Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Связи
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  achievementId String   @map("achievement_id")
+  earnedAt      DateTime @default(now()) @map("earned_at")
+  description   String?
+
+  // Связи
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model Position {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  level       Int      @default(1)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Связи
+  userPositions UserPosition[]
+
+  @@map("positions")
+}
+
+model UserPosition {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  positionId String    @map("position_id")
+  startDate  DateTime  @default(now()) @map("start_date")
+  endDate    DateTime? @map("end_date")
+  isActive   Boolean   @default(true) @map("is_active")
+
+  // Связи
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position   Position  @relation(fields: [positionId], references: [id])
+
+  @@map("user_positions")
+}
+
+model Belonging {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  iconUrl     String?  @map("icon_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Связи
+  userBelongings UserBelonging[]
+
+  @@map("belongings")
+}
+
+model UserBelonging {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  belongingId String    @map("belonging_id")
+  joinedAt    DateTime  @default(now()) @map("joined_at")
+  leftAt      DateTime? @map("left_at")
+  isActive    Boolean   @default(true) @map("is_active")
+
+  // Связи
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  belonging   Belonging @relation(fields: [belongingId], references: [id])
+
+  @@map("user_belongings")
+}
+
+// ============================================================================
+// ДОКУМЕНТЫ И FAQ
+// ============================================================================
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  filename    String
+  fileUrl     String   @map("file_url")
+  fileSize    Int      @map("file_size")
+  mimeType    String   @map("mime_type")
+  category    String?
+  isPublic    Boolean  @default(true) @map("is_public")
+  uploadedBy  String   @map("uploaded_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Связи
+  uploader    User     @relation("DocumentUploader", fields: [uploadedBy], references: [id])
+
+  @@map("documents")
+}
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  sortOrder Int      @default(0) @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
+
+// ============================================================================
+// AI ЧАТ
+// ============================================================================
+
+model AIConversation {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Связи
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AIMessage[]
+
+  @@map("ai_conversations")
+}
+
+model AIMessage {
+  id             String         @id @default(cuid())
+  conversationId String         @map("conversation_id")
+  role           MessageRole
+  content        String
+  metadata       Json?
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  // Связи
+  conversation   AIConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("ai_messages")
+}
+
+// ============================================================================
+// СИСТЕМНЫЕ ТАБЛИЦЫ
+// ============================================================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  type      SettingType @default(STRING)
+  category  String?
+  isPublic  Boolean  @default(false) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  oldData   Json?    @map("old_data")
+  newData   Json?    @map("new_data")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AccountType {
+  CHECKING  // Расчетный
+  CREDIT    // Кредитный
+}
+
+enum TransactionType {
+  CREDIT    // Пополнение
+  DEBIT     // Списание
+  TRANSFER  // Перевод
+  PURCHASE  // Покупка
+  REWARD    // Награда
+}
+
+enum TransactionReference {
+  PURCHASE
+  AUCTION
+  CONTRACT
+  MANUAL
+  SYSTEM
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContractStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationType {
+  GENERAL
+  SYSTEM
+  ACHIEVEMENT
+  TRANSACTION
+  AUCTION
+  CONTRACT
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum SettingType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
