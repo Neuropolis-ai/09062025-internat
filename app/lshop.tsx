@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Header } from '../components/Header';
+import { Header } from './components/Header';
 
 interface Product {
   id: string;
@@ -24,7 +24,7 @@ interface Product {
   category: string;
 }
 
-export default function ShopScreen() {
+const LShop = () => {
   const router = useRouter();
   const [userBalance] = useState(150); // Текущий баланс пользователя в L-Coin
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -85,6 +85,10 @@ export default function ShopScreen() {
 
   const handleNotificationPress = () => {
     router.push('/(tabs)/notifications');
+  };
+
+  const handleBackPress = () => {
+    router.back();
   };
 
   const handleBuyPress = (product: Product) => {
@@ -158,6 +162,7 @@ export default function ShopScreen() {
         title="L-shop" 
         notificationCount={2}
         onNotificationPress={handleNotificationPress}
+        onBackPress={handleBackPress}
         showBackButton={false}
         showNotificationButton={true}
       />
@@ -236,7 +241,7 @@ export default function ShopScreen() {
       </Modal>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -447,4 +452,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 12,
   },
-}); 
+});
+
+export default LShop; 

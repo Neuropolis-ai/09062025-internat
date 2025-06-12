@@ -11,7 +11,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  title, 
+  title = "Заголовок", 
   notificationCount = 3, 
   onNotificationPress,
   onBackPress,
@@ -50,8 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
       
       <Text style={styles.headerTitle}>{title}</Text>
       
-      {/* Кнопка уведомлений - показываем только если showNotificationButton = true */}
-      {showNotificationButton ? (
+      {showNotificationButton && (
         <TouchableOpacity 
           style={styles.notificationButton} 
           onPress={handleNotificationPress}
@@ -63,9 +62,9 @@ export const Header: React.FC<HeaderProps> = ({
             </View>
           )}
         </TouchableOpacity>
-      ) : (
-        <View style={styles.rightSpacer} />
       )}
+      
+      {!showNotificationButton && <View style={styles.rightSpacer} />}
     </View>
   );
 };

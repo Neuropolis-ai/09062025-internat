@@ -37,6 +37,10 @@ export default function HomeScreen() {
         // Переход к странице правил
         router.push('/pravila');
         break;
+      case 'faq':
+        // Переход к странице FAQ
+        router.push('/faq');
+        break;
       default:
         console.log(`Переход к модулю: ${module}`);
     }
@@ -148,6 +152,21 @@ export default function HomeScreen() {
               <View style={styles.moduleContent}>
                 <Text style={styles.moduleTitle}>Условия и соглашения</Text>
                 <Text style={styles.moduleDescription}>Документы и регламенты</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666666" />
+            </TouchableOpacity>
+
+            {/* FAQ - Вопросы и ответы */}
+            <TouchableOpacity 
+              style={styles.moduleCard}
+              onPress={() => handleModulePress('faq')}
+            >
+              <View style={styles.moduleIcon}>
+                <Ionicons name="help-circle" size={28} color="#8B2439" />
+              </View>
+              <View style={styles.moduleContent}>
+                <Text style={styles.moduleTitle}>FAQ - Вопросы и ответы</Text>
+                <Text style={styles.moduleDescription}>Часто задаваемые вопросы о лицее</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#666666" />
             </TouchableOpacity>

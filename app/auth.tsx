@@ -149,7 +149,7 @@ export default function AuthScreen() {
       }),
       color: animValue.interpolate({
         inputRange: [0, 1],
-        outputRange: ['#666666', '#007AFF'],
+        outputRange: ['#666666', '#8B2439'],
       }),
       backgroundColor: '#F2F2F7',
       paddingHorizontal: 4,
@@ -182,91 +182,93 @@ export default function AuthScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Лицей-интернат{'\n'}«Подмосковный»</Text>
-          <Text style={styles.subtitle}>Добро пожаловать!</Text>
+          <Text style={styles.headerTitle}>Вход в личный кабинет</Text>
         </View>
 
         {/* Form */}
         <View style={styles.formContainer}>
-          <FloatingLabelInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            onFocus={() => handleInputFocus('email')}
-            onBlur={() => handleInputBlur('email', email)}
-            error={errors.email}
-            animValue={emailLabelAnim}
-          />
+          <View style={styles.authBlock}>
+            <FloatingLabelInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => handleInputFocus('email')}
+              onBlur={() => handleInputBlur('email', email)}
+              error={errors.email}
+              animValue={emailLabelAnim}
+            />
 
-          <FloatingLabelInput
-            label="Пароль"
-            value={password}
-            onChangeText={setPassword}
-            onFocus={() => handleInputFocus('password')}
-            onBlur={() => handleInputBlur('password', password)}
-            secureTextEntry
-            error={errors.password}
-            animValue={passwordLabelAnim}
-          />
+            <FloatingLabelInput
+              label="Пароль"
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => handleInputFocus('password')}
+              onBlur={() => handleInputBlur('password', password)}
+              secureTextEntry
+              error={errors.password}
+              animValue={passwordLabelAnim}
+            />
 
-          <FloatingLabelInput
-            label="Подтвердите пароль"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            onFocus={() => handleInputFocus('confirmPassword')}
-            onBlur={() => handleInputBlur('confirmPassword', confirmPassword)}
-            secureTextEntry
-            error={errors.confirmPassword}
-            animValue={confirmPasswordLabelAnim}
-          />
+            <FloatingLabelInput
+              label="Подтвердите пароль"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              onFocus={() => handleInputFocus('confirmPassword')}
+              onBlur={() => handleInputBlur('confirmPassword', confirmPassword)}
+              secureTextEntry
+              error={errors.confirmPassword}
+              animValue={confirmPasswordLabelAnim}
+            />
 
-          {/* Login Button */}
-          <TouchableOpacity 
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <View style={styles.buttonContent}>
+            {/* Login Button */}
+            <TouchableOpacity 
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
               <Text style={styles.buttonText}>
                 {isLoading ? 'Вход...' : 'Войти'}
               </Text>
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-          {/* Reset Password Button */}
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => setShowResetPassword(!showResetPassword)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.secondaryButtonText}>Сбросить пароль</Text>
-          </TouchableOpacity>
+            {/* Reset Password Button */}
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => setShowResetPassword(!showResetPassword)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.secondaryButtonText}>Сбросить пароль</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Reset Password Form */}
           {showResetPassword && (
             <View style={styles.resetContainer}>
-              <Text style={styles.resetTitle}>Сброс пароля</Text>
-              <Text style={styles.resetDescription}>
-                Введите ваш email для получения инструкций по сбросу пароля
-              </Text>
+              <Text style={styles.resetTitle}>Сбросить пароль</Text>
+              
+              <View style={styles.resetInputContainer}>
+                <TextInput
+                  style={styles.resetInput}
+                  placeholder="Email"
+                  placeholderTextColor="#666666"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                />
+              </View>
               
               <TouchableOpacity
                 style={styles.resetButton}
                 onPress={handleResetPassword}
                 activeOpacity={0.8}
               >
-                <Text style={styles.resetButtonText}>Отправить</Text>
+                <Text style={styles.resetButtonText}>Сбросить пароль</Text>
               </TouchableOpacity>
             </View>
           )}
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            © 2025 Лицей-интернат «Подмосковный»
-          </Text>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -280,44 +282,31 @@ const styles = StyleSheet.create({
   },
   keyboardView: {
     flex: 1,
-    justifyContent: 'space-between',
   },
   header: {
-    paddingTop: height * 0.08,
-    paddingHorizontal: 24,
+    backgroundColor: '#8B2439',
+    paddingTop: height * 0.06,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000000',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 34,
-  },
-  subtitle: {
+  headerTitle: {
     fontSize: 18,
-    color: '#666666',
+    fontWeight: '600',
+    color: '#FFFFFF',
     textAlign: 'center',
   },
   formContainer: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 30,
   },
-  inputContainer: {
-    marginBottom: 24,
-    position: 'relative',
-  },
-  input: {
+  authBlock: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    fontSize: 16,
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -327,22 +316,37 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  inputContainer: {
+    marginBottom: 20,
+    position: 'relative',
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
   inputError: {
-    borderColor: '#FF3B30',
+    borderColor: '#FF4444',
   },
   errorText: {
-    color: '#FF3B30',
+    color: '#FF4444',
     fontSize: 12,
     marginTop: 4,
     marginLeft: 16,
   },
   button: {
-    marginTop: 32,
+    backgroundColor: '#8B2439',
+    borderRadius: 12,
+    paddingVertical: 16,
+    marginTop: 10,
     marginBottom: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#007AFF',
-    shadowColor: '#007AFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#8B2439',
     shadowOffset: {
       width: 0,
       height: 4,
@@ -354,30 +358,24 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonContent: {
-    paddingVertical: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
   },
   secondaryButton: {
-    paddingVertical: 16,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: '#8B2439',
     fontSize: 16,
     fontWeight: '500',
   },
   resetContainer: {
-    marginTop: 24,
-    padding: 20,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 12,
+    padding: 16,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -388,21 +386,26 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   resetTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 8,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#8B2439',
+    marginBottom: 16,
     textAlign: 'center',
   },
-  resetDescription: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
+  resetInputContainer: {
     marginBottom: 16,
-    lineHeight: 20,
+  },
+  resetInput: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
   },
   resetButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: '#8B2439',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
@@ -411,15 +414,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-  },
-  footer: {
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#999999',
-    textAlign: 'center',
   },
 }); 
