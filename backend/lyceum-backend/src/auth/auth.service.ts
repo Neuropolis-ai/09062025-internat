@@ -31,43 +31,51 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
-    // Проверяем, существует ли пользователь с таким email
-    const existingUser = await this.usersService.findByEmail(registerDto.email);
-    if (existingUser) {
-      throw new ConflictException('Пользователь с таким email уже существует');
+    try {
+      // Проверяем, существует ли пользователь с таким email
+      const existingUser = await this.usersService.findByEmail(registerDto.email);
+      if (existingUser) {
+        throw new ConflictException('Пользователь с таким email уже существует');
+      }
+
+      // Хешируем пароль
+      const saltRounds = this.configService.get<number>('security.bcryptRounds') || 12;
+      const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
+
+      // Генерируем ИННЛ
+      const innl = await this.usersService.generateInnl();
+
+      // Создаем пользователя напрямую через Prisma
+      const user = await this.prisma.user.create({
+        data: {
+          email: registerDto.email,
+          passwordHash: hashedPassword,
+          firstName: registerDto.firstName,
+          lastName: registerDto.lastName,
+          classId: registerDto.classId,
+          cottageId: registerDto.cottageId,
+          phone: registerDto.phone,
+          role: registerDto.role || UserRole.STUDENT,
+          innl,
+        },
+      });
+
+      // Создаем счета пользователя
+      await this.createUserAccounts(user.id);
+
+      // Генерируем токены
+      const tokens = await this.generateTokens(user);
+
+      const { passwordHash, ...userWithoutPassword } = user;
+
+      return {
+        user: userWithoutPassword,
+        ...tokens,
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      throw error;
     }
-
-    // Хешируем пароль
-    const saltRounds = this.configService.get<number>('security.bcryptRounds') || 12;
-    const hashedPassword = await bcrypt.hash(registerDto.password, saltRounds);
-
-    // Генерируем ИННЛ
-    const innl = await this.usersService.generateInnl();
-
-    // Создаем пользователя напрямую через Prisma
-    const user = await this.prisma.user.create({
-      data: {
-        email: registerDto.email,
-        passwordHash: hashedPassword,
-        firstName: registerDto.firstName,
-        lastName: registerDto.lastName,
-        classId: registerDto.classId,
-        cottageId: registerDto.cottageId,
-        phone: registerDto.phone,
-        role: registerDto.role || UserRole.STUDENT,
-        innl,
-      },
-    });
-
-    // Генерируем токены
-    const tokens = await this.generateTokens(user);
-
-    const { passwordHash, ...userWithoutPassword } = user;
-
-    return {
-      user: userWithoutPassword,
-      ...tokens,
-    };
   }
 
   async login(loginDto: LoginDto): Promise<AuthResponse> {
