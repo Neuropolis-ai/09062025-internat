@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  role      Role     @default(STUDENT)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Отношения
+  accounts         Account[]
+  transactions     Transaction[]
+  productPurchases ProductPurchase[]
+  products         Product[]
+  auctions         Auction[]
+  auctionBids      AuctionBid[]
+  contracts        Contract[]
+  contractBids     ContractBid[]
+  refreshTokens    RefreshToken[]
+  files            File[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance     Decimal     @default(0)
+  accountType AccountType @default(CHECKING)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Transaction {
+  id              String            @id @default(cuid())
+  amount          Decimal
+  transactionType TransactionType
+  description     String?
+  referenceId     String?
+  referenceType   ReferenceType?
+  status          TransactionStatus @default(PENDING)
+  createdBy       String
+  user            User              @relation(fields: [createdBy], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Product {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  price       Decimal
+  imageUrl    String?
+  category    String?
+  isActive    Boolean           @default(true)
+  stock       Int               @default(0)
+  createdBy   String
+  creator     User              @relation(fields: [createdBy], references: [id])
+  purchases   ProductPurchase[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model ProductPurchase {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  quantity  Int      @default(1)
+  price     Decimal
+  createdAt DateTime @default(now())
+}
+
+model Auction {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  imageUrl        String?
+  startingPrice   Decimal
+  currentPrice    Decimal
+  minBidIncrement Decimal       @default(1)
+  startTime       DateTime
+  endTime         DateTime
+  status          AuctionStatus @default(DRAFT)
+  createdBy       String
+  creator         User          @relation(fields: [createdBy], references: [id])
+  winnerId        String?
+  winner          User?         @relation("AuctionWinner", fields: [winnerId], references: [id])
+  bids            AuctionBid[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model AuctionBid {
+  id        String   @id @default(cuid())
+  auctionId String
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Decimal
+  createdAt DateTime @default(now())
+}
+
+model Contract {
+  id          String         @id @default(cuid())
+  title       String
+  description String
+  budget      Decimal?
+  deadline    DateTime?
+  status      ContractStatus @default(OPEN)
+  createdBy   String
+  creator     User           @relation(fields: [createdBy], references: [id])
+  acceptedBid String?        @unique
+  bids        ContractBid[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model ContractBid {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  amount     Decimal
+  proposal   String
+  deliveryTime Int // дни
+  createdAt  DateTime @default(now())
+}
+
+model File {
+  id           String         @id @default(cuid())
+  filename     String
+  s3Key        String         @unique
+  size         Int
+  mimeType     String
+  visibility   FileVisibility @default(PRIVATE)
+  category     String         @default("general")
+  description  String?
+  uploadedBy   String
+  uploader     User           @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  s3Url        String
+  uploadStatus FileStatus     @default(COMPLETED)
+  uploadedAt   DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
+enum ReferenceType {
+  PRODUCT
+  AUCTION
+  CONTRACT
+  BALANCE_ADD
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum ContractStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum FileStatus {
+  PENDING
+  COMPLETED
+  FAILED
+} 
