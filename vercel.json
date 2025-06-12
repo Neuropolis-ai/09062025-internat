@@ -15,18 +15,18 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/app/(.*)",
-      "dest": "/dist/$1"
+      "source": "/app",
+      "destination": "/dist/index.html"
     },
     {
-      "src": "/app",
-      "dest": "/dist/index.html"
+      "source": "/app/(.*)",
+      "destination": "/dist/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/admin-web/$1"
+      "source": "/(.*)",
+      "destination": "/admin-web/$1"
     }
   ]
 } 
