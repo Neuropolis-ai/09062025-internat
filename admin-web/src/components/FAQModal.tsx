@@ -6,23 +6,19 @@ interface FAQ {
   id: string;
   question: string;
   answer: string;
-  category: 'academic' | 'dormitory' | 'finance' | 'technical' | 'general';
-  isVisible: boolean;
-  priority: 'low' | 'medium' | 'high';
+  category?: string;
+  sortOrder?: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
-  views: number;
-  helpful: number;
-  notHelpful: number;
 }
 
 interface FAQFormData {
   question: string;
   answer: string;
-  category: 'academic' | 'dormitory' | 'finance' | 'technical' | 'general';
-  isVisible: boolean;
-  priority: 'low' | 'medium' | 'high';
+  category?: string;
+  sortOrder?: number;
+  isActive: boolean;
 }
 
 interface FAQModalProps {
@@ -33,25 +29,19 @@ interface FAQModalProps {
 }
 
 const categoryNames = {
-  academic: 'Учебные вопросы',
-  dormitory: 'Общежитие',
-  finance: 'Финансы и L-Coin',
-  technical: 'Технические вопросы',
-  general: 'Общие вопросы'
+  'academic': 'Учебные вопросы',
+  'dormitory': 'Общежитие',
+  'finance': 'Финансы и L-Coin',
+  'technical': 'Технические вопросы',
+  'general': 'Общие вопросы'
 };
 
 const categoryIcons = {
-  academic: '📚',
-  dormitory: '🏠',
-  finance: '💰',
-  technical: '💻',
-  general: '❓'
-};
-
-const priorityNames = {
-  low: 'Низкий',
-  medium: 'Средний',
-  high: 'Высокий'
+  'academic': '📚',
+  'dormitory': '🏠',
+  'finance': '💰',
+  'technical': '💻',
+  'general': '❓'
 };
 
 export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps) {
@@ -59,8 +49,8 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
     question: '',
     answer: '',
     category: 'general',
-    isVisible: true,
-    priority: 'medium'
+    sortOrder: 0,
+    isActive: true
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,17 +60,17 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
       setFormData({
         question: faq.question,
         answer: faq.answer,
-        category: faq.category,
-        isVisible: faq.isVisible,
-        priority: faq.priority
+        category: faq.category || 'general',
+        sortOrder: faq.sortOrder || 0,
+        isActive: faq.isActive
       });
     } else {
       setFormData({
         question: '',
         answer: '',
         category: 'general',
-        isVisible: true,
-        priority: 'medium'
+        sortOrder: 0,
+        isActive: true
       });
     }
     setErrors({});
@@ -117,7 +107,7 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
     }
   };
 
-  const handleInputChange = (field: keyof FAQFormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof FAQFormData, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -195,7 +185,7 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
                         <select
                           className="admin-input w-full"
                           value={formData.category}
-                          onChange={(e) => handleInputChange('category', e.target.value as 'academic' | 'dormitory' | 'finance' | 'technical' | 'general')}
+                          onChange={(e) => handleInputChange('category', e.target.value)}
                         >
                           {Object.entries(categoryNames).map(([key, name]) => (
                             <option key={key} value={key}>
@@ -205,41 +195,40 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
                         </select>
                       </div>
 
-                      {/* Приоритет */}
+                      {/* Порядок сортировки */}
                       <div>
                         <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Приоритет
+                          Порядок сортировки
                         </label>
-                        <select
+                        <input
+                          type="number"
                           className="admin-input w-full"
-                          value={formData.priority}
-                          onChange={(e) => handleInputChange('priority', e.target.value as 'low' | 'medium' | 'high')}
-                        >
-                          {Object.entries(priorityNames).map(([key, name]) => (
-                            <option key={key} value={key}>{name}</option>
-                          ))}
-                        </select>
+                          placeholder="0"
+                          min="0"
+                          value={formData.sortOrder || 0}
+                          onChange={(e) => handleInputChange('sortOrder', parseInt(e.target.value) || 0)}
+                        />
                         <p className="text-xs admin-text-secondary mt-1">
-                          Высокий приоритет отображается первым в списке
+                          Меньшие значения отображаются первыми
                         </p>
                       </div>
 
-                      {/* Видимость */}
+                      {/* Активность */}
                       <div>
                         <label className="flex items-center">
                           <input
                             type="checkbox"
                             className="form-checkbox h-4 w-4 rounded"
                             style={{ color: 'var(--primary-burgundy)' }}
-                            checked={formData.isVisible}
-                            onChange={(e) => handleInputChange('isVisible', e.target.checked)}
+                            checked={formData.isActive}
+                            onChange={(e) => handleInputChange('isActive', e.target.checked)}
                           />
                           <span className="ml-2 text-sm font-medium admin-text-secondary">
-                            👁️ Видимый для пользователей
+                            ✅ Активный вопрос
                           </span>
                         </label>
                         <p className="text-xs admin-text-secondary mt-1 ml-6">
-                          Скрытые вопросы доступны только администраторам
+                          Неактивные вопросы скрыты от пользователей
                         </p>
                       </div>
                     </div>
@@ -270,27 +259,20 @@ export default function FAQModal({ isOpen, onClose, faq, onSave }: FAQModalProps
                         <h5 className="font-medium text-gray-900 mb-2">Превью FAQ</h5>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <span className="text-lg">{categoryIcons[formData.category]}</span>
+                            <span className="text-lg">{categoryIcons[formData.category as keyof typeof categoryIcons] || '❓'}</span>
                             <span className="font-medium">
                               {formData.question || 'Вопрос...'}
                             </span>
                             <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                              {categoryNames[formData.category]}
+                              {categoryNames[formData.category as keyof typeof categoryNames] || 'Без категории'}
                             </span>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              formData.priority === 'high' ? 'bg-red-100 text-red-800' :
-                              formData.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {priorityNames[formData.priority]}
-                            </span>
-                            {formData.isVisible ? (
+                            {formData.isActive ? (
                               <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
-                                Видимый
+                                Активный
                               </span>
                             ) : (
                               <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
-                                Скрытый
+                                Неактивный
                               </span>
                             )}
                           </div>

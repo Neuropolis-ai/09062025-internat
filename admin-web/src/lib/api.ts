@@ -232,6 +232,49 @@ export class ApiClient {
       body: JSON.stringify({ message, context }),
     });
   }
+
+  // FAQ API
+  async getFaqs(params?: { category?: string; search?: string; isActive?: boolean }): Promise<any[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.category) searchParams.append('category', params.category);
+    if (params?.search) searchParams.append('search', params.search);
+    if (params?.isActive !== undefined) searchParams.append('isActive', params.isActive.toString());
+    
+    const query = searchParams.toString();
+    return this.request(`/faq${query ? `?${query}` : ''}`);
+  }
+
+  async getFaqById(id: string): Promise<any> {
+    return this.request(`/faq/${id}`);
+  }
+
+  async createFaq(faqData: any): Promise<any> {
+    return this.request('/faq', {
+      method: 'POST',
+      body: JSON.stringify(faqData),
+    });
+  }
+
+  async updateFaq(id: string, faqData: any): Promise<any> {
+    return this.request(`/faq/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(faqData),
+    });
+  }
+
+  async deleteFaq(id: string): Promise<any> {
+    return this.request(`/faq/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getFaqCategories(): Promise<any[]> {
+    return this.request('/faq/categories');
+  }
+
+  async getFaqStats(): Promise<any> {
+    return this.request('/faq/stats');
+  }
 }
 
 export const apiClient = new ApiClient(); 

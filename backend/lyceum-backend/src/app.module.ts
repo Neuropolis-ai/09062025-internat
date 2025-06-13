@@ -10,6 +10,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { AuctionsModule } from './auctions/auctions.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { FaqModule } from './faq/faq.module';
 import { ChatModule } from './chat/chat.module';
 import { StorageModule } from './storage/storage.module';
 import configuration from './common/config/configuration';
@@ -28,6 +29,7 @@ import configuration from './common/config/configuration';
     AuctionsModule,
     ContractsModule,
     NotificationsModule,
+    FaqModule,
     ChatModule,
     StorageModule,
   ],

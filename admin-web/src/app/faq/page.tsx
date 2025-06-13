@@ -1,126 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import FAQModal from '../../components/FAQModal';
+import { useAdmin } from '../../contexts/AdminContext';
 
 interface FAQ {
   id: string;
   question: string;
   answer: string;
-  category: 'academic' | 'dormitory' | 'finance' | 'technical' | 'general';
-  isVisible: boolean;
-  priority: 'low' | 'medium' | 'high';
+  category?: string;
+  sortOrder?: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  createdBy: string;
-  views: number;
-  helpful: number;
-  notHelpful: number;
 }
 
 interface FAQFormData {
   question: string;
   answer: string;
-  category: 'academic' | 'dormitory' | 'finance' | 'technical' | 'general';
-  isVisible: boolean;
-  priority: 'low' | 'medium' | 'high';
+  category?: string;
+  sortOrder?: number;
+  isActive: boolean;
 }
 
-// Тестовые данные FAQ
-const mockFAQs: FAQ[] = [
-  {
-    id: '1',
-    question: 'Как войти в мобильное приложение лицея?',
-    answer: 'Для входа в мобильное приложение используйте те же данные, что и для входа на сайт. Логин - это ваш номер LINN, пароль выдается классным руководителем или администрацией. При первом входе рекомендуется сменить пароль.',
-    category: 'technical',
-    isVisible: true,
-    priority: 'high',
-    createdAt: '2024-01-10 10:00',
-    updatedAt: '2024-01-15 14:30',
-    createdBy: 'IT-отдел',
-    views: 245,
-    helpful: 198,
-    notHelpful: 12
-  },
-  {
-    id: '2',
-    question: 'Как начислить L-Coin за достижения?',
-    answer: 'L-Coin начисляются автоматически за: отличные оценки (+10), победы в олимпиадах (+50), участие в мероприятиях (+20), дежурство по лицею (+5). Также учителя могут начислить дополнительные L-Coin через систему поощрений.',
-    category: 'finance',
-    isVisible: true,
-    priority: 'high',
-    createdAt: '2024-01-08 09:15',
-    updatedAt: '2024-01-12 16:20',
-    createdBy: 'Администрация',
-    views: 189,
-    helpful: 156,
-    notHelpful: 8
-  },
-  {
-    id: '3',
-    question: 'Правила проживания в общежитии',
-    answer: 'Основные правила: соблюдение тишины с 22:00 до 07:00, поддержание чистоты в комнате, запрет на курение и алкоголь, обязательное участие в дежурствах. Посещение других комнат разрешено до 21:00.',
-    category: 'dormitory',
-    isVisible: true,
-    priority: 'medium',
-    createdAt: '2024-01-05 11:30',
-    updatedAt: '2024-01-10 09:45',
-    createdBy: 'Воспитатель',
-    views: 134,
-    helpful: 118,
-    notHelpful: 5
-  },
-  {
-    id: '4',
-    question: 'Как подать заявку на академический отпуск?',
-    answer: 'Для подачи заявки на академический отпуск необходимо: 1) Написать заявление на имя директора, 2) Предоставить справку о состоянии здоровья (если отпуск по медицинским показаниям), 3) Получить согласие родителей, 4) Пройти собеседование с заместителем директора.',
-    category: 'academic',
-    isVisible: true,
-    priority: 'medium',
-    createdAt: '2024-01-03 13:20',
-    updatedAt: '2024-01-08 10:15',
-    createdBy: 'Завуч',
-    views: 67,
-    helpful: 52,
-    notHelpful: 3
-  },
-  {
-    id: '5',
-    question: 'Расписание работы столовой',
-    answer: 'Столовая работает: завтрак 07:30-08:30, обед 12:00-14:00, ужин 18:00-19:30. В выходные дни: завтрак 08:00-09:00, обед 13:00-14:30, ужин 18:30-19:30.',
-    category: 'general',
-    isVisible: true,
-    priority: 'low',
-    createdAt: '2024-01-01 15:00',
-    updatedAt: '2024-01-07 12:30',
-    createdBy: 'Администрация',
-    views: 98,
-    helpful: 87,
-    notHelpful: 2
-  },
-  {
-    id: '6',
-    question: 'Что делать при проблемах с интернетом в комнате?',
-    answer: 'При проблемах с интернетом: 1) Перезагрузите роутер в комнате, 2) Проверьте подключение кабелей, 3) Если проблема не решена, подайте заявку в IT-отдел через приложение или обратитесь к дежурному воспитателю.',
-    category: 'technical',
-    isVisible: false,
-    priority: 'low',
-    createdAt: '2023-12-28 16:45',
-    updatedAt: '2024-01-02 11:20',
-    createdBy: 'IT-отдел',
-    views: 45,
-    helpful: 32,
-    notHelpful: 8
-  }
-];
-
 const categoryNames = {
-  academic: 'Учебные вопросы',
-  dormitory: 'Общежитие',
-  finance: 'Финансы и L-Coin',
-  technical: 'Технические вопросы',
-  general: 'Общие вопросы'
+  'Учебные вопросы': 'academic',
+  'Общежитие': 'dormitory', 
+  'Финансы и L-Coin': 'finance',
+  'Технические вопросы': 'technical',
+  'Общие вопросы': 'general'
 };
 
 const categoryIcons = {
@@ -131,48 +40,42 @@ const categoryIcons = {
   general: '❓'
 };
 
-const priorityNames = {
-  low: 'Низкий',
-  medium: 'Средний',
-  high: 'Высокий'
-};
-
-const priorityColors = {
-  low: 'bg-gray-100 text-gray-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  high: 'bg-red-100 text-red-800'
-};
-
 export default function FAQPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { 
+    faqs, 
+    faqStats, 
+    loading, 
+    error, 
+    loadFaqs, 
+    createFaq, 
+    updateFaq, 
+    deleteFaq, 
+    loadFaqStats,
+    sidebarOpen,
+    setSidebarOpen 
+  } = useAdmin();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Все");
-  const [selectedPriority, setSelectedPriority] = useState<string>("Все");
   const [selectedStatus, setSelectedStatus] = useState<string>("Все");
   const [faqModalOpen, setFaqModalOpen] = useState(false);
   const [editingFAQ, setEditingFAQ] = useState<FAQ | null>(null);
 
-  // Статистика
-  const totalFAQs = mockFAQs.length;
-  const visibleFAQs = mockFAQs.filter(f => f.isVisible).length;
-  const totalViews = mockFAQs.reduce((sum, f) => sum + f.views, 0);
-  const averageHelpfulness = Math.round(
-    (mockFAQs.reduce((sum, f) => sum + f.helpful, 0) / 
-     mockFAQs.reduce((sum, f) => sum + f.helpful + f.notHelpful, 0)) * 100
-  );
+  // Загружаем данные при монтировании
+  useEffect(() => {
+    loadFaqs();
+    loadFaqStats();
+  }, []);
 
   // Фильтрация FAQ
-  const filteredFAQs = mockFAQs.filter(faq => {
+  const filteredFAQs = faqs.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === "Все" || 
-                          categoryNames[faq.category as keyof typeof categoryNames] === selectedCategory;
-    const matchesPriority = selectedPriority === "Все" || 
-                          priorityNames[faq.priority as keyof typeof priorityNames] === selectedPriority;
+    const matchesCategory = selectedCategory === "Все" || faq.category === selectedCategory;
     const matchesStatus = selectedStatus === "Все" ||
-                         (selectedStatus === "Видимые" && faq.isVisible) ||
-                         (selectedStatus === "Скрытые" && !faq.isVisible);
-    return matchesSearch && matchesCategory && matchesPriority && matchesStatus;
+                         (selectedStatus === "Активные" && faq.isActive) ||
+                         (selectedStatus === "Неактивные" && !faq.isActive);
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const handleEditFAQ = (faq: FAQ) => {
@@ -180,18 +83,24 @@ export default function FAQPage() {
     setFaqModalOpen(true);
   };
 
-  const handleDeleteFAQ = (faq: FAQ) => {
+  const handleDeleteFAQ = async (faq: FAQ) => {
     if (confirm(`Вы уверены, что хотите удалить вопрос "${faq.question}"?`)) {
-      // TODO: API-запрос на удаление
-      console.log('Удаление FAQ:', faq);
-      alert(`Вопрос "${faq.question}" удален`);
+      try {
+        await deleteFaq(faq.id);
+        alert(`Вопрос "${faq.question}" удален`);
+      } catch (err) {
+        alert('Ошибка при удалении вопроса');
+      }
     }
   };
 
-  const handleToggleVisible = (faq: FAQ) => {
-    // TODO: API-запрос на изменение видимости
-    console.log('Изменение видимости FAQ:', faq);
-    alert(`Видимость вопроса "${faq.question}" изменена`);
+  const handleToggleVisible = async (faq: FAQ) => {
+    try {
+      await updateFaq(faq.id, { ...faq, isActive: !faq.isActive });
+      alert(`Видимость вопроса "${faq.question}" изменена`);
+    } catch (err) {
+      alert('Ошибка при изменении видимости');
+    }
   };
 
   const handleAddFAQ = () => {
@@ -199,15 +108,19 @@ export default function FAQPage() {
     setFaqModalOpen(true);
   };
 
-  const handleSaveFAQ = (faqData: FAQFormData) => {
-    if (editingFAQ) {
-      // TODO: API-запрос на обновление FAQ
-      console.log('Обновление FAQ:', { ...editingFAQ, ...faqData });
-      alert(`Вопрос "${faqData.question}" обновлен!`);
-    } else {
-      // TODO: API-запрос на создание FAQ
-      console.log('Создание FAQ:', faqData);
-      alert(`Вопрос "${faqData.question}" создан!`);
+  const handleSaveFAQ = async (faqData: FAQFormData) => {
+    try {
+      if (editingFAQ) {
+        await updateFaq(editingFAQ.id, faqData);
+        alert(`Вопрос "${faqData.question}" обновлен!`);
+      } else {
+        await createFaq(faqData);
+        alert(`Вопрос "${faqData.question}" создан!`);
+      }
+      setFaqModalOpen(false);
+      setEditingFAQ(null);
+    } catch (err) {
+      alert('Ошибка при сохранении вопроса');
     }
   };
 
@@ -216,10 +129,11 @@ export default function FAQPage() {
     setEditingFAQ(null);
   };
 
-  const getHelpfulnessPercentage = (helpful: number, notHelpful: number) => {
-    const total = helpful + notHelpful;
-    return total > 0 ? Math.round((helpful / total) * 100) : 0;
-  };
+  // Статистика
+  const totalFAQs = faqStats?.total || faqs.length;
+  const activeFAQs = faqStats?.active || faqs.filter(f => f.isActive).length;
+  const inactiveFAQs = faqStats?.inactive || faqs.filter(f => !f.isActive).length;
+  const totalCategories = faqStats?.categories || new Set(faqs.map(f => f.category)).size;
 
   return (
     <div className="min-h-screen admin-container flex">
@@ -298,8 +212,8 @@ export default function FAQPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Видимых</dt>
-                        <dd className="text-lg font-medium text-gray-900">{visibleFAQs}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Активных</dt>
+                        <dd className="text-lg font-medium text-gray-900">{activeFAQs}</dd>
                       </dl>
                     </div>
                   </div>
@@ -316,26 +230,8 @@ export default function FAQPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего просмотров</dt>
-                        <dd className="text-lg font-medium text-gray-900">{totalViews}</dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="admin-card">
-                <div className="px-4 py-5 sm:p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
-                        <span className="text-white font-bold">👍</span>
-                      </div>
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Полезность</dt>
-                        <dd className="text-lg font-medium text-gray-900">{averageHelpfulness}%</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего категорий</dt>
+                        <dd className="text-lg font-medium text-gray-900">{totalCategories}</dd>
                       </dl>
                     </div>
                   </div>
@@ -370,24 +266,8 @@ export default function FAQPage() {
                       onChange={(e) => setSelectedCategory(e.target.value)}
                     >
                       <option value="Все">Все категории</option>
-                      {Object.values(categoryNames).map(category => (
+                      {Object.keys(categoryNames).map(category => (
                         <option key={category} value={category}>{category}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium admin-text-secondary mb-2">
-                      Приоритет
-                    </label>
-                    <select
-                      className="admin-input w-full"
-                      value={selectedPriority}
-                      onChange={(e) => setSelectedPriority(e.target.value)}
-                    >
-                      <option value="Все">Все приоритеты</option>
-                      {Object.values(priorityNames).map(priority => (
-                        <option key={priority} value={priority}>{priority}</option>
                       ))}
                     </select>
                   </div>
@@ -402,8 +282,8 @@ export default function FAQPage() {
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                       <option value="Все">Все</option>
-                      <option value="Видимые">Видимые</option>
-                      <option value="Скрытые">Скрытые</option>
+                      <option value="Активные">Активные</option>
+                      <option value="Неактивные">Неактивные</option>
                     </select>
                   </div>
                 </div>
@@ -455,23 +335,20 @@ export default function FAQPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
-                              <span className="text-lg">{categoryIcons[faq.category]}</span>
+                              <span className="text-lg">{categoryIcons[faq.category as keyof typeof categoryIcons]}</span>
                               <h4 className="text-lg font-medium text-gray-900">
                                 {faq.question}
                               </h4>
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {categoryNames[faq.category]}
+                                {faq.category}
                               </span>
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[faq.priority]}`}>
-                                {priorityNames[faq.priority]}
-                              </span>
-                              {faq.isVisible ? (
+                              {faq.isActive ? (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  Видимый
+                                  Активный
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  Скрытый
+                                  Неактивный
                                 </span>
                               )}
                             </div>
@@ -482,23 +359,20 @@ export default function FAQPage() {
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs admin-text-secondary">
                               <div>
-                                <span className="font-medium">Просмотры:</span>
-                                <div>{faq.views}</div>
-                              </div>
-                              <div>
-                                <span className="font-medium">Полезность:</span>
-                                <div>
-                                  👍 {faq.helpful} / 👎 {faq.notHelpful} 
-                                  ({getHelpfulnessPercentage(faq.helpful, faq.notHelpful)}%)
-                                </div>
-                              </div>
-                              <div>
                                 <span className="font-medium">Создан:</span>
                                 <div>{new Date(faq.createdAt).toLocaleDateString('ru-RU')}</div>
                               </div>
                               <div>
-                                <span className="font-medium">Автор:</span>
-                                <div>{faq.createdBy}</div>
+                                <span className="font-medium">Категория:</span>
+                                <div>{faq.category || 'Не указана'}</div>
+                              </div>
+                              <div>
+                                <span className="font-medium">Порядок:</span>
+                                <div>{faq.sortOrder || 0}</div>
+                              </div>
+                              <div>
+                                <span className="font-medium">Статус:</span>
+                                <div>{faq.isActive ? 'Активный' : 'Неактивный'}</div>
                               </div>
                             </div>
 
@@ -513,13 +387,13 @@ export default function FAQPage() {
                             <button
                               onClick={() => handleToggleVisible(faq)}
                               className={`p-2 rounded ${
-                                faq.isVisible 
+                                faq.isActive 
                                   ? 'text-red-600 hover:bg-red-50' 
                                   : 'text-green-600 hover:bg-green-50'
                               }`}
-                              title={faq.isVisible ? 'Скрыть' : 'Показать'}
+                              title={faq.isActive ? 'Сделать неактивным' : 'Сделать активным'}
                             >
-                              {faq.isVisible ? '👁️‍🗨️' : '👁️'}
+                              {faq.isActive ? '👁️‍🗨️' : '👁️'}
                             </button>
                             <button
                               onClick={() => handleEditFAQ(faq)}

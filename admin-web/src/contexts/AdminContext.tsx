@@ -28,6 +28,17 @@ interface Product {
   isActive: boolean;
 }
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category?: string;
+  sortOrder?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AdminContextType {
   // Users
   users: User[];
@@ -45,6 +56,15 @@ interface AdminContextType {
   createProduct: (productData: any) => Promise<void>;
   updateProduct: (id: string, productData: any) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  
+  // FAQ
+  faqs: FAQ[];
+  faqStats: any;
+  loadFaqs: (params?: { category?: string; search?: string; isActive?: boolean }) => Promise<void>;
+  createFaq: (faqData: any) => Promise<void>;
+  updateFaq: (id: string, faqData: any) => Promise<void>;
+  deleteFaq: (id: string) => Promise<void>;
+  loadFaqStats: () => Promise<void>;
   
   // System
   healthData: any;
@@ -69,6 +89,10 @@ export function AdminProvider({ children }: AdminProviderProps) {
   
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
+  
+  // FAQ state
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [faqStats, setFaqStats] = useState<any>(null);
   
   // System state
   const [healthData, setHealthData] = useState<any>(null);
@@ -209,6 +233,67 @@ export function AdminProvider({ children }: AdminProviderProps) {
     }
   };
 
+  // FAQ functions
+  const loadFaqs = async (params?: { category?: string; search?: string; isActive?: boolean }) => {
+    try {
+      const data = await apiClient.getFaqs(params);
+      setFaqs(data as FAQ[]);
+    } catch (err) {
+      console.error('Ошибка загрузки вопросов:', err);
+    }
+  };
+
+  const createFaq = async (faqData: any) => {
+    try {
+      setLoading(true);
+      const newFaq = await apiClient.createFaq(faqData);
+      setFaqs(prev => [...prev, newFaq]);
+    } catch (err) {
+      console.error('Ошибка создания вопроса:', err);
+      setError('Ошибка создания вопроса');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFaq = async (id: string, faqData: any) => {
+    try {
+      setLoading(true);
+      const updatedFaq = await apiClient.updateFaq(id, faqData);
+      setFaqs(prev => prev.map(faq => (faq.id === id ? updatedFaq : faq)));
+    } catch (err) {
+      console.error('Ошибка обновления вопроса:', err);
+      setError('Ошибка обновления вопроса');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFaq = async (id: string) => {
+    try {
+      setLoading(true);
+      await apiClient.deleteFaq(id);
+      setFaqs(prev => prev.filter(faq => faq.id !== id));
+    } catch (err) {
+      console.error('Ошибка удаления вопроса:', err);
+      setError('Ошибка удаления вопроса');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadFaqStats = async () => {
+    try {
+      const data = await apiClient.getFaqStats();
+      setFaqStats(data);
+    } catch (err) {
+      console.error('Ошибка загрузки статистики вопросов:', err);
+    }
+  };
+
   // System functions
   const checkHealth = async () => {
     try {
@@ -236,6 +321,15 @@ export function AdminProvider({ children }: AdminProviderProps) {
     createProduct,
     updateProduct,
     deleteProduct,
+    
+    // FAQ
+    faqs,
+    faqStats,
+    loadFaqs,
+    createFaq,
+    updateFaq,
+    deleteFaq,
+    loadFaqStats,
     
     // System
     healthData,
