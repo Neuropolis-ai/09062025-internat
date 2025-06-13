@@ -2,46 +2,53 @@
 
 import { useState, useEffect } from 'react';
 
-interface Task {
+interface Contract {
   id: string;
   title: string;
   description: string;
+  rewardAmount: number;
+  requirements?: string;
   category: string;
-  price: number;
-  minBid: number;
-  deadline: string;
-  department: string;
-  priority: 'low' | 'medium' | 'high';
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  deadline?: string;
+  maxParticipants: number;
+  createdAt: string;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  _count: {
+    bids: number;
+  };
 }
 
-interface TaskFormData {
+interface ContractFormData {
   title: string;
   description: string;
   category: string;
-  price: number;
-  minBid: number;
-  deadline: string;
-  department: string;
-  priority: 'low' | 'medium' | 'high';
+  rewardAmount: number;
+  requirements?: string;
+  deadline?: string;
+  maxParticipants: number;
 }
 
 interface ContractModalProps {
   isOpen: boolean;
   onClose: () => void;
-  task?: Task | null;
-  onSave: (data: TaskFormData) => void;
+  contract?: Contract | null;
+  onSave: (data: ContractFormData) => void;
 }
 
-export default function ContractModal({ isOpen, onClose, task, onSave }: ContractModalProps) {
-  const [formData, setFormData] = useState<TaskFormData>({
+export default function ContractModal({ isOpen, onClose, contract, onSave }: ContractModalProps) {
+  const [formData, setFormData] = useState<ContractFormData>({
     title: '',
     description: '',
     category: '',
-    price: 0,
-    minBid: 0,
+    rewardAmount: 0,
+    requirements: '',
     deadline: '',
-    department: '',
-    priority: 'medium'
+    maxParticipants: 1
   });
 
   const categories = [
@@ -55,54 +62,43 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
     'Дежурство'
   ];
 
-  const departments = [
-    'Физкультурный отдел',
-    'Библиотека',
-    'Творческий отдел',
-    'Хозяйственный отдел',
-    'Технический отдел',
-    'Учебный отдел',
-    'Воспитательный отдел',
-    'Административный отдел'
-  ];
-
   useEffect(() => {
-    if (task) {
+    if (contract) {
       setFormData({
-        title: task.title,
-        description: task.description,
-        category: task.category,
-        price: task.price,
-        minBid: task.minBid,
-        deadline: task.deadline,
-        department: task.department,
-        priority: task.priority
+        title: contract.title,
+        description: contract.description,
+        category: contract.category,
+        rewardAmount: contract.rewardAmount,
+        requirements: contract.requirements || '',
+        deadline: contract.deadline ? contract.deadline.slice(0, 16) : '',
+        maxParticipants: contract.maxParticipants
       });
     } else {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
       setFormData({
         title: '',
         description: '',
         category: '',
-        price: 0,
-        minBid: 0,
-        deadline: '',
-        department: '',
-        priority: 'medium'
+        rewardAmount: 0,
+        requirements: '',
+        deadline: tomorrow.toISOString().slice(0, 16),
+        maxParticipants: 1
       });
     }
-  }, [task]);
+  }, [contract]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Валидация
     if (!formData.title.trim()) {
-      alert('Введите название задания');
+      alert('Введите название контракта');
       return;
     }
     
     if (!formData.description.trim()) {
-      alert('Введите описание задания');
+      alert('Введите описание контракта');
       return;
     }
     
@@ -111,59 +107,35 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
       return;
     }
     
-    if (!formData.department) {
-      alert('Выберите отдел');
+    if (formData.rewardAmount <= 0) {
+      alert('Введите корректную сумму вознаграждения');
       return;
     }
     
-    if (formData.price <= 0) {
-      alert('Введите корректную стоимость');
+    if (formData.maxParticipants <= 0) {
+      alert('Введите корректное количество участников');
       return;
     }
     
-    if (formData.minBid <= 0) {
-      alert('Введите корректную минимальную ставку');
-      return;
-    }
-    
-    if (formData.minBid > formData.price) {
-      alert('Минимальная ставка не может быть больше стоимости');
-      return;
-    }
-    
-    if (!formData.deadline) {
-      alert('Выберите дедлайн');
-      return;
-    }
-    
-    const deadline = new Date(formData.deadline);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (deadline <= today) {
-      alert('Дедлайн должен быть в будущем');
-      return;
+    if (formData.deadline) {
+      const deadline = new Date(formData.deadline);
+      const today = new Date();
+      
+      if (deadline <= today) {
+        alert('Дедлайн должен быть в будущем');
+        return;
+      }
     }
 
     onSave(formData);
     onClose();
   };
 
-  const handleInputChange = (field: keyof TaskFormData, value: string | number) => {
+  const handleInputChange = (field: keyof ContractFormData, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
-  };
-
-  const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
-  };
-
-  const getMinDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return formatDate(tomorrow);
   };
 
   if (!isOpen) return null;
@@ -173,7 +145,7 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
       <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md admin-card">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-medium text-gray-900">
-            {task ? 'Редактировать задание' : 'Создать новое задание'}
+            {contract ? 'Редактировать контракт' : 'Создать новый контракт'}
           </h3>
           <button
             onClick={onClose}
@@ -184,10 +156,10 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Название задания */}
+          {/* Название контракта */}
           <div>
             <label className="block text-sm font-medium admin-text-secondary mb-2">
-              Название задания *
+              Название контракта *
             </label>
             <input
               type="text"
@@ -202,19 +174,33 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
           {/* Описание */}
           <div>
             <label className="block text-sm font-medium admin-text-secondary mb-2">
-              Полное описание задания *
+              Описание *
             </label>
             <textarea
               required
               rows={4}
-              className="admin-input w-full"
-              placeholder="Детальное описание того, что нужно сделать..."
+              className="admin-input w-full resize-none"
+              placeholder="Подробное описание задач и условий выполнения контракта"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
             />
           </div>
 
-          {/* Категория и Отдел */}
+          {/* Требования */}
+          <div>
+            <label className="block text-sm font-medium admin-text-secondary mb-2">
+              Требования к исполнителю
+            </label>
+            <textarea
+              rows={3}
+              className="admin-input w-full resize-none"
+              placeholder="Специальные навыки, опыт или требования для выполнения контракта"
+              value={formData.requirements || ''}
+              onChange={(e) => handleInputChange('requirements', e.target.value)}
+            />
+          </div>
+
+          {/* Категория и Вознаграждение */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium admin-text-secondary mb-2">
@@ -235,135 +221,117 @@ export default function ContractModal({ isOpen, onClose, task, onSave }: Contrac
 
             <div>
               <label className="block text-sm font-medium admin-text-secondary mb-2">
-                Ответственный отдел *
-              </label>
-              <select
-                required
-                className="admin-input w-full"
-                value={formData.department}
-                onChange={(e) => handleInputChange('department', e.target.value)}
-              >
-                <option value="">Выберите отдел</option>
-                {departments.map(department => (
-                  <option key={department} value={department}>{department}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Стоимость и минимальная ставка */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium admin-text-secondary mb-2">
-                💰 Стоимость (L-Coin) *
+                Вознаграждение (L-Coin) *
               </label>
               <input
                 type="number"
                 required
                 min="1"
-                step="1"
                 className="admin-input w-full"
-                placeholder="25"
-                value={formData.price || ''}
-                onChange={(e) => handleInputChange('price', parseInt(e.target.value) || 0)}
+                placeholder="50"
+                value={formData.rewardAmount || ''}
+                onChange={(e) => handleInputChange('rewardAmount', parseInt(e.target.value) || 0)}
               />
-              <p className="text-xs admin-text-secondary mt-1">
-                Максимальная сумма за выполнение
-              </p>
             </div>
+          </div>
 
+          {/* Максимальное количество участников и Дедлайн */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium admin-text-secondary mb-2">
-                💰 Минимальная ставка (L-Coin) *
+                Максимальное количество участников *
               </label>
               <input
                 type="number"
                 required
                 min="1"
-                step="1"
+                max="10"
                 className="admin-input w-full"
-                placeholder="15"
-                value={formData.minBid || ''}
-                onChange={(e) => handleInputChange('minBid', parseInt(e.target.value) || 0)}
+                value={formData.maxParticipants || ''}
+                onChange={(e) => handleInputChange('maxParticipants', parseInt(e.target.value) || 1)}
               />
-              <p className="text-xs admin-text-secondary mt-1">
-                Минимум для подачи отклика
-              </p>
             </div>
-          </div>
 
-          {/* Дедлайн и приоритет */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium admin-text-secondary mb-2">
-                📅 Дедлайн *
+                Дедлайн
               </label>
               <input
-                type="date"
-                required
-                min={getMinDate()}
+                type="datetime-local"
                 className="admin-input w-full"
-                value={formData.deadline}
+                value={formData.deadline || ''}
                 onChange={(e) => handleInputChange('deadline', e.target.value)}
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium admin-text-secondary mb-2">
-                Приоритет
-              </label>
-              <select
-                className="admin-input w-full"
-                value={formData.priority}
-                onChange={(e) => handleInputChange('priority', e.target.value as 'low' | 'medium' | 'high')}
-              >
-                <option value="low">Низкий</option>
-                <option value="medium">Средний</option>
-                <option value="high">Высокий</option>
-              </select>
-            </div>
           </div>
 
-          {/* Превью */}
-          {formData.title && formData.price && formData.minBid && (
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--background-gray)' }}>
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Превью задания</h4>
-              <div className="space-y-2 text-sm">
-                <p><strong>Название:</strong> {formData.title}</p>
-                {formData.category && <p><strong>Категория:</strong> {formData.category}</p>}
-                {formData.department && <p><strong>Отдел:</strong> {formData.department}</p>}
-                <p><strong>Стоимость:</strong> {formData.price} L-Coin</p>
-                <p><strong>Минимальная ставка:</strong> {formData.minBid} L-Coin</p>
-                {formData.deadline && (
-                  <p><strong>Дедлайн:</strong> {new Date(formData.deadline).toLocaleDateString('ru-RU')}</p>
-                )}
-                <p><strong>Приоритет:</strong> {
-                  formData.priority === 'low' ? 'Низкий' :
-                  formData.priority === 'medium' ? 'Средний' : 'Высокий'
-                }</p>
+          {/* Превью контракта */}
+          {formData.title && formData.rewardAmount > 0 && (
+            <div className="p-4 rounded-md" style={{ backgroundColor: 'var(--background-light)' }}>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Превью контракта:</h4>
+              <div className="admin-card">
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="text-lg font-medium text-gray-900">
+                      {formData.title}
+                    </h4>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Открыт
+                    </span>
+                  </div>
+                  
+                  <p className="admin-text-secondary text-sm mb-4">
+                    {formData.description}
+                  </p>
+
+                  <div className="text-sm space-y-2">
+                    <div className="flex items-center">
+                      <span className="mr-1">💰</span>
+                      {formData.rewardAmount} L-Coin
+                    </div>
+                    <div className="flex items-center">
+                      <span className="mr-1">👥</span>
+                      до {formData.maxParticipants} участников
+                    </div>
+                    {formData.deadline && (
+                      <div className="flex items-center">
+                        <span className="mr-1">📅</span>
+                        до {new Date(formData.deadline).toLocaleDateString('ru-RU')}
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <span className="mr-1">🏷️</span>
+                      {formData.category}
+                    </div>
+                  </div>
+
+                  {formData.requirements && (
+                    <div className="mt-3 p-2 bg-blue-50 rounded-md">
+                      <p className="text-sm text-blue-800">
+                        <strong>Требования:</strong> {formData.requirements}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Кнопки */}
-          <div className="flex justify-end space-x-4 pt-4">
+          {/* Кнопки действий */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"
-              style={{ 
-                borderColor: 'var(--divider)',
-                color: 'var(--text-secondary)'
-              }}
+              className="admin-button-secondary px-4 py-2 text-sm font-medium rounded-md"
             >
               Отмена
             </button>
             <button
               type="submit"
-              className="admin-button-primary px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="admin-button-primary px-4 py-2 text-sm font-medium rounded-md"
               style={{ backgroundColor: 'var(--primary-burgundy)' }}
             >
-              {task ? 'Обновить задание' : 'Создать задание'}
+              {contract ? 'Сохранить изменения' : 'Создать контракт'}
             </button>
           </div>
         </form>

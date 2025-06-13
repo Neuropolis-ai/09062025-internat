@@ -1,296 +1,224 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import ContractModal from '../../components/ContractModal';
 
-interface TaskBid {
+interface ContractBid {
   id: string;
-  studentName: string;
-  studentClass: string;
   bidAmount: number;
   comment: string;
-  submittedAt: string;
-  status: 'pending' | 'accepted' | 'rejected';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  createdAt: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
 }
 
-interface Task {
+interface Contract {
   id: string;
   title: string;
   description: string;
+  rewardAmount: number;
+  requirements?: string;
   category: string;
-  price: number;
-  minBid: number;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
+  status: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  deadline?: string;
+  maxParticipants: number;
   createdAt: string;
-  deadline: string;
-  assignedTo?: string;
-  department: string;
-  priority: 'low' | 'medium' | 'high';
-  bids: TaskBid[];
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  _count: {
+    bids: number;
+  };
 }
 
-interface TaskFormData {
+interface ContractFormData {
   title: string;
   description: string;
   category: string;
-  price: number;
-  minBid: number;
-  deadline: string;
-  department: string;
-  priority: 'low' | 'medium' | 'high';
+  rewardAmount: number;
+  requirements?: string;
+  deadline?: string;
+  maxParticipants: number;
 }
 
-const mockTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Организация утренней зарядки',
-    description: 'Проведение утренней зарядки для младших классов. Необходимо подготовить комплекс упражнений и провести занятие в течение недели.',
-    category: 'Спорт',
-    price: 15,
-    minBid: 10,
-    status: 'open',
-    createdAt: '2024-01-10',
-    deadline: '2024-01-20',
-    department: 'Физкультурный отдел',
-    priority: 'medium',
-    bids: [
-      {
-        id: '1',
-        studentName: 'Иванов Петр',
-        studentClass: '10А',
-        bidAmount: 12,
-        comment: 'Имею опыт проведения зарядки в летнем лагере. Готов разработать интересную программу упражнений.',
-        submittedAt: '2024-01-11 10:30',
-        status: 'pending'
-      },
-      {
-        id: '2',
-        studentName: 'Сидорова Анна',
-        studentClass: '11Б',
-        bidAmount: 15,
-        comment: 'Занимаюсь спортом 5 лет, имею сертификат инструктора по фитнесу.',
-        submittedAt: '2024-01-11 14:20',
-        status: 'pending'
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Помощь в библиотеке',
-    description: 'Помощь библиотекарю в каталогизации новых поступлений, расстановке книг и подготовке выставки.',
-    category: 'Образование',
-    price: 20,
-    minBid: 15,
-    status: 'assigned',
-    createdAt: '2024-01-08',
-    deadline: '2024-01-25',
-    assignedTo: 'Петрова Мария, 9В',
-    department: 'Библиотека',
-    priority: 'low',
-    bids: [
-      {
-        id: '3',
-        studentName: 'Петрова Мария',
-        studentClass: '9В',
-        bidAmount: 18,
-        comment: 'Люблю читать и работать с книгами. Помогала в школьной библиотеке в прошлом году.',
-        submittedAt: '2024-01-09 09:15',
-        status: 'accepted'
-      }
-    ]
-  },
-  {
-    id: '3',
-    title: 'Оформление стенда к празднику',
-    description: 'Создание информационного стенда к предстоящему празднику. Требуется креативный подход и аккуратность.',
-    category: 'Творчество',
-    price: 25,
-    minBid: 20,
-    status: 'open',
-    createdAt: '2024-01-12',
-    deadline: '2024-01-18',
-    department: 'Творческий отдел',
-    priority: 'high',
-    bids: []
-  },
-  {
-    id: '4',
-    title: 'Дежурство в столовой',
-    description: 'Помощь в сервировке столов, уборке после приема пищи, поддержание порядка в обеденном зале.',
-    category: 'Общественная работа',
-    price: 12,
-    minBid: 8,
-    status: 'completed',
-    createdAt: '2024-01-05',
-    deadline: '2024-01-15',
-    assignedTo: 'Козлов Андрей, 8А',
-    department: 'Хозяйственный отдел',
-    priority: 'medium',
-    bids: [
-      {
-        id: '4',
-        studentName: 'Козлов Андрей',
-        studentClass: '8А',
-        bidAmount: 10,
-        comment: 'Ответственно отношусь к поручениям, готов помочь.',
-        submittedAt: '2024-01-06 16:45',
-        status: 'accepted'
-      }
-    ]
-  },
-  {
-    id: '5',
-    title: 'Техническая поддержка мероприятия',
-    description: 'Помощь в настройке звуковой аппаратуры и освещения для школьного концерта.',
-    category: 'Техническое обеспечение',
-    price: 30,
-    minBid: 25,
-    status: 'open',
-    createdAt: '2024-01-13',
-    deadline: '2024-01-22',
-    department: 'Технический отдел',
-    priority: 'high',
-    bids: [
-      {
-        id: '5',
-        studentName: 'Смирнов Игорь',
-        studentClass: '11А',
-        bidAmount: 28,
-        comment: 'Увлекаюсь техникой, имею опыт работы с аудиоаппаратурой.',
-        submittedAt: '2024-01-14 11:00',
-        status: 'pending'
-      }
-    ]
-  }
-];
-
 const categories = ["Все", "Спорт", "Образование", "Творчество", "Общественная работа", "Техническое обеспечение"];
-const statusFilters = ["Все", "Открытые", "Назначенные", "Завершенные", "Отмененные"];
-const priorityFilters = ["Все", "Высокий", "Средний", "Низкий"];
+const statusFilters = ["Все", "Открытые", "В работе", "Завершенные", "Отмененные"];
 
 export default function ContractsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Все");
   const [selectedStatus, setSelectedStatus] = useState("Все");
-  const [selectedPriority, setSelectedPriority] = useState("Все");
   const [searchQuery, setSearchQuery] = useState("");
   const [contractModalOpen, setContractModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingContract, setEditingContract] = useState<Contract | null>(null);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [isViewingDetails, setIsViewingDetails] = useState(false);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadContracts();
+  }, []);
+
+  const loadContracts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3001/api/v1/contracts');
+      if (response.ok) {
+        const data = await response.json();
+        setContracts(data);
+      } else {
+        console.error('Ошибка загрузки контрактов:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки контрактов:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Статистические данные
-  const totalTasks = mockTasks.length;
-  const openTasks = mockTasks.filter(t => t.status === 'open').length;
-  const assignedTasks = mockTasks.filter(t => t.status === 'assigned').length;
-  const totalBids = mockTasks.reduce((sum, t) => sum + t.bids.length, 0);
+  const totalContracts = contracts.length;
+  const openContracts = contracts.filter(c => c.status === 'OPEN').length;
+  const inProgressContracts = contracts.filter(c => c.status === 'IN_PROGRESS').length;
+  const totalBids = contracts.reduce((sum, c) => sum + c._count.bids, 0);
 
-  // Фильтрация заданий
-  const filteredTasks = mockTasks.filter(task => {
-    const matchesCategory = selectedCategory === "Все" || task.category === selectedCategory;
+  // Фильтрация контрактов
+  const filteredContracts = contracts.filter(contract => {
+    const matchesCategory = selectedCategory === "Все" || contract.category === selectedCategory;
     const matchesStatus = selectedStatus === "Все" || 
-      (selectedStatus === "Открытые" && task.status === "open") ||
-      (selectedStatus === "Назначенные" && task.status === "assigned") ||
-      (selectedStatus === "Завершенные" && task.status === "completed") ||
-      (selectedStatus === "Отмененные" && task.status === "cancelled");
-    const matchesPriority = selectedPriority === "Все" ||
-      (selectedPriority === "Высокий" && task.priority === "high") ||
-      (selectedPriority === "Средний" && task.priority === "medium") ||
-      (selectedPriority === "Низкий" && task.priority === "low");
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         task.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesStatus && matchesPriority && matchesSearch;
+      (selectedStatus === "Открытые" && contract.status === "OPEN") ||
+      (selectedStatus === "В работе" && contract.status === "IN_PROGRESS") ||
+      (selectedStatus === "Завершенные" && contract.status === "COMPLETED") ||
+      (selectedStatus === "Отмененные" && contract.status === "CANCELLED");
+    const matchesSearch = contract.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         contract.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesStatus && matchesSearch;
   });
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'open': return 'Открыто';
-      case 'assigned': return 'Назначено';
-      case 'completed': return 'Завершено';
-      case 'cancelled': return 'Отменено';
+      case 'OPEN': return 'Открыт';
+      case 'IN_PROGRESS': return 'В работе';
+      case 'COMPLETED': return 'Завершен';
+      case 'CANCELLED': return 'Отменен';
       default: return status;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800';
-      case 'assigned': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'OPEN': return 'bg-green-100 text-green-800';
+      case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800';
+      case 'COMPLETED': return 'bg-gray-100 text-gray-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Высокий';
-      case 'medium': return 'Средний';
-      case 'low': return 'Низкий';
-      default: return priority;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleViewTask = (task: Task) => {
-    setSelectedTask(task);
+  const handleViewContract = (contract: Contract) => {
+    setSelectedContract(contract);
     setIsViewingDetails(true);
   };
 
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
+  const handleEditContract = (contract: Contract) => {
+    setEditingContract(contract);
     setContractModalOpen(true);
   };
 
-  const handleDeleteTask = (task: Task) => {
-    if (confirm(`Вы уверены, что хотите удалить задание "${task.title}"?`)) {
-      // TODO: API-запрос на удаление
-      console.log('Удаление задания:', task);
-      alert(`Задание "${task.title}" удалено`);
+  const handleDeleteContract = async (contract: Contract) => {
+    if (confirm(`Вы уверены, что хотите удалить контракт "${contract.title}"?`)) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/v1/contracts/${contract.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          await loadContracts();
+          alert(`Контракт "${contract.title}" удален`);
+        } else {
+          alert('Ошибка при удалении контракта');
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении:', error);
+        alert('Ошибка при удалении контракта');
+      }
     }
   };
 
-  const handleAddTask = () => {
-    setEditingTask(null);
+  const handleAddContract = () => {
+    setEditingContract(null);
     setContractModalOpen(true);
   };
 
-  const handleSaveTask = (taskData: TaskFormData) => {
-    if (editingTask) {
-      // TODO: API-запрос на обновление задания
-      console.log('Обновление задания:', { ...editingTask, ...taskData });
-      alert(`Задание "${taskData.title}" обновлено!`);
-    } else {
-      // TODO: API-запрос на создание задания
-      console.log('Создание задания:', taskData);
-      alert(`Задание "${taskData.title}" создано!`);
+  const handleSaveContract = async (contractData: ContractFormData) => {
+    try {
+      if (editingContract) {
+        // Обновление контракта
+        const response = await fetch(`http://localhost:3001/api/v1/contracts/${editingContract.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contractData),
+        });
+
+        if (response.ok) {
+          await loadContracts();
+          alert(`Контракт "${contractData.title}" обновлен!`);
+        } else {
+          alert('Ошибка при обновлении контракта');
+        }
+      } else {
+        // Создание контракта
+        const response = await fetch('http://localhost:3001/api/v1/contracts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contractData),
+        });
+
+        if (response.ok) {
+          await loadContracts();
+          alert(`Контракт "${contractData.title}" создан!`);
+        } else {
+          alert('Ошибка при создании контракта');
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении контракта:', error);
+      alert('Ошибка при сохранении контракта');
     }
   };
 
   const handleCloseModal = () => {
     setContractModalOpen(false);
-    setEditingTask(null);
+    setEditingContract(null);
   };
 
-  const handleAcceptBid = (taskId: string, bidId: string) => {
-    // TODO: API-запрос на принятие отклика
-    console.log('Принять отклик:', taskId, bidId);
-    alert('Отклик принят!');
-  };
-
-  const handleRejectBid = (taskId: string, bidId: string) => {
-    // TODO: API-запрос на отклонение отклика
-    console.log('Отклонить отклик:', taskId, bidId);
-    alert('Отклик отклонен!');
+  const handleViewBids = async (contract: Contract) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/v1/contracts/${contract.id}/bids`);
+      if (response.ok) {
+        const bids = await response.json();
+        alert(`Заявки для контракта: ${contract.title}\nВсего заявок: ${bids.length}\n\n${bids.map((bid: any) => 
+          `${bid.bidAmount} L-Coin от ${bid.user.firstName} ${bid.user.lastName}\nКомментарий: ${bid.comment}\nСтатус: ${bid.status}\n(${new Date(bid.createdAt).toLocaleString('ru-RU')})`
+        ).join('\n\n')}`);
+      } else {
+        alert('Ошибка при загрузке заявок');
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке заявок:', error);
+      alert('Ошибка при загрузке заявок');
+    }
   };
 
   return (
@@ -321,7 +249,7 @@ export default function ContractsPage() {
               
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={handleAddTask}
+                  onClick={handleAddContract}
                   className="admin-button-primary text-white px-4 py-2 rounded-md transition-colors"
                   style={{ 
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
@@ -352,8 +280,8 @@ export default function ContractsPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего заданий</dt>
-                        <dd className="text-lg font-medium text-gray-900">{totalTasks}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего контрактов</dt>
+                        <dd className="text-lg font-medium text-gray-900">{totalContracts}</dd>
                       </dl>
                     </div>
                   </div>
@@ -370,8 +298,8 @@ export default function ContractsPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Открытые задания</dt>
-                        <dd className="text-lg font-medium text-gray-900">{openTasks}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Открытые контракты</dt>
+                        <dd className="text-lg font-medium text-gray-900">{openContracts}</dd>
                       </dl>
                     </div>
                   </div>
@@ -388,8 +316,8 @@ export default function ContractsPage() {
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Назначенные задания</dt>
-                        <dd className="text-lg font-medium text-gray-900">{assignedTasks}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Контракты в работе</dt>
+                        <dd className="text-lg font-medium text-gray-900">{inProgressContracts}</dd>
                       </dl>
                     </div>
                   </div>
@@ -421,7 +349,7 @@ export default function ContractsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-sm font-medium admin-text-secondary mb-2">
-                      Поиск заданий
+                      Поиск контрактов
                     </label>
                     <input
                       type="text"
@@ -461,40 +389,25 @@ export default function ContractsPage() {
                       ))}
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium admin-text-secondary mb-2">
-                      Приоритет
-                    </label>
-                    <select
-                      className="admin-input w-full"
-                      value={selectedPriority}
-                      onChange={(e) => setSelectedPriority(e.target.value)}
-                    >
-                      {priorityFilters.map(priority => (
-                        <option key={priority} value={priority}>{priority}</option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Список заданий */}
+            {/* Список контрактов */}
             <div className="admin-card">
               <div className="px-4 py-5 sm:p-6">
                 <div className="sm:flex sm:items-center sm:justify-between mb-6">
                   <div>
                     <h3 className="text-lg leading-6 font-medium text-gray-900">
-                      Список заданий
+                      Список контрактов
                     </h3>
                     <p className="mt-1 max-w-2xl text-sm admin-text-secondary">
-                      Управление заданиями от администрации для учеников
+                      Управление контрактами от администрации для учеников
                     </p>
                   </div>
                   <div className="mt-4 sm:mt-0">
                     <button
-                      onClick={handleAddTask}
+                      onClick={handleAddContract}
                       className="admin-button-primary inline-flex items-center px-4 py-2 text-sm font-medium rounded-md"
                       style={{ backgroundColor: 'var(--primary-burgundy)' }}
                     >
@@ -504,77 +417,66 @@ export default function ContractsPage() {
                   </div>
                 </div>
 
-                {filteredTasks.length === 0 ? (
+                {filteredContracts.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--background-gray)' }}>
                       <span className="text-2xl">📋</span>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Заданий не найдено</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Контрактов не найдено</h3>
                     <p className="admin-text-secondary">
-                      Попробуйте изменить критерии поиска или создайте новое задание.
+                      Попробуйте изменить критерии поиска или создайте новый контракт.
                     </p>
                   </div>
                 ) : (
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredTasks.map((task) => (
+                    {filteredContracts.map((contract) => (
                       <div
-                        key={task.id}
+                        key={contract.id}
                         className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                         style={{ borderColor: 'var(--divider)' }}
-                        onClick={() => handleViewTask(task)}
+                        onClick={() => handleViewContract(contract)}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <h4 className="text-lg font-medium text-gray-900 flex-1">
-                            {task.title}
+                            {contract.title}
                           </h4>
                           <span className="text-xl ml-2">👁️</span>
                         </div>
                         
                         <p className="admin-text-secondary text-sm mb-4 line-clamp-2">
-                          {task.description}
+                          {contract.description}
                         </p>
 
                         <div className="flex items-center justify-between mb-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
-                            {getStatusText(task.status)}
-                          </span>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {getPriorityText(task.priority)}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
+                            {getStatusText(contract.status)}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-sm admin-text-secondary mb-3">
                           <div className="flex items-center">
                             <span className="mr-1">💰</span>
-                            {task.price} L-Coin
+                            {contract.rewardAmount} L-Coin
                           </div>
                           <div className="flex items-center">
                             <span className="mr-1">👥</span>
-                            {task.bids.length} откликов
+                            {contract._count.bids} откликов
                           </div>
                           <div className="flex items-center">
                             <span className="mr-1">📅</span>
-                            до {new Date(task.deadline).toLocaleDateString('ru-RU')}
+                            до {contract.deadline ? new Date(contract.deadline).toLocaleDateString('ru-RU') : 'нет'}
                           </div>
                           <div className="flex items-center">
                             <span className="mr-1">🏷️</span>
-                            {task.category}
+                            {contract.category}
                           </div>
                         </div>
-
-                        {task.assignedTo && (
-                          <div className="mt-3 p-2 bg-green-50 rounded-md">
-                            <p className="text-sm text-green-800">
-                              <strong>Назначено:</strong> {task.assignedTo}
-                            </p>
-                          </div>
-                        )}
 
                         <div className="flex justify-end space-x-2 mt-4">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEditTask(task);
+                              handleEditContract(contract);
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded"
                             title="Редактировать"
@@ -584,7 +486,7 @@ export default function ContractsPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteTask(task);
+                              handleDeleteContract(contract);
                             }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded"
                             title="Удалить"
@@ -602,14 +504,14 @@ export default function ContractsPage() {
         </main>
       </div>
 
-      {/* Модальное окно деталей задания */}
-      {isViewingDetails && selectedTask && (
+      {/* Модальное окно деталей контракта */}
+      {isViewingDetails && selectedContract && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
           <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md admin-card">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedTask.title}</h3>
-                <p className="mt-1 text-sm admin-text-secondary">{selectedTask.department}</p>
+                <h3 className="text-lg font-medium text-gray-900">{selectedContract.title}</h3>
+                <p className="mt-1 text-sm admin-text-secondary">{selectedContract.category}</p>
               </div>
               <button
                 onClick={() => setIsViewingDetails(false)}
@@ -624,86 +526,64 @@ export default function ContractsPage() {
             <div className="space-y-6">
               <div>
                 <h4 className="text-md font-medium text-gray-900 mb-2">Описание</h4>
-                <p className="text-sm admin-text-secondary">{selectedTask.description}</p>
+                <p className="text-sm admin-text-secondary">{selectedContract.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <span className="text-sm font-medium admin-text-secondary">Стоимость:</span>
-                  <p className="text-sm text-gray-900">{selectedTask.price} L-Coin</p>
+                  <p className="text-sm text-gray-900">{selectedContract.rewardAmount} L-Coin</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium admin-text-secondary">Минимальная ставка:</span>
-                  <p className="text-sm text-gray-900">{selectedTask.minBid} L-Coin</p>
+                  <span className="text-sm font-medium admin-text-secondary">Максимальное количество участников:</span>
+                  <p className="text-sm text-gray-900">{selectedContract.maxParticipants}</p>
                 </div>
                 <div>
                   <span className="text-sm font-medium admin-text-secondary">Дедлайн:</span>
-                  <p className="text-sm text-gray-900">{new Date(selectedTask.deadline).toLocaleDateString('ru-RU')}</p>
-                </div>
-                <div>
-                  <span className="text-sm font-medium admin-text-secondary">Приоритет:</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(selectedTask.priority)}`}>
-                    {getPriorityText(selectedTask.priority)}
-                  </span>
+                  <p className="text-sm text-gray-900">{selectedContract.deadline ? new Date(selectedContract.deadline).toLocaleDateString('ru-RU') : 'нет'}</p>
                 </div>
               </div>
 
-              {selectedTask.bids.length > 0 && (
+              {selectedContract._count.bids > 0 && (
                 <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Отклики учеников ({selectedTask.bids.length})</h4>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Отклики учеников ({selectedContract._count.bids})</h4>
                   <div className="space-y-4">
-                    {selectedTask.bids.map((bid) => (
-                      <div key={bid.id} className="border rounded-lg p-4" style={{ borderColor: 'var(--divider)' }}>
+                    {contracts.map((contract) => (
+                      <div key={contract.id} className="border rounded-lg p-4" style={{ borderColor: 'var(--divider)' }}>
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h5 className="text-sm font-medium text-gray-900">{bid.studentName}</h5>
-                            <p className="text-xs admin-text-secondary">{bid.studentClass} • {bid.submittedAt}</p>
+                            <h5 className="text-sm font-medium text-gray-900">{contract.title}</h5>
+                            <p className="text-xs admin-text-secondary">{contract.category} • {contract.status}</p>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium" style={{ color: 'var(--primary-burgundy)' }}>{bid.bidAmount} L-Coin</span>
-                            {bid.status === 'pending' && (
+                            <span className="text-sm font-medium" style={{ color: 'var(--primary-burgundy)' }}>{contract.rewardAmount} L-Coin</span>
+                            {contract.status === 'OPEN' && (
                               <div className="flex space-x-1">
                                 <button
-                                  onClick={() => handleAcceptBid(selectedTask.id, bid.id)}
+                                  onClick={() => handleViewBids(contract)}
                                   className="px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700"
                                 >
-                                  Принять
-                                </button>
-                                <button
-                                  onClick={() => handleRejectBid(selectedTask.id, bid.id)}
-                                  className="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700"
-                                >
-                                  Отклонить
+                                  Посмотреть отклики
                                 </button>
                               </div>
                             )}
-                            {bid.status === 'accepted' && (
-                              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
-                                Принято
-                              </span>
-                            )}
-                            {bid.status === 'rejected' && (
-                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-md">
-                                Отклонено
-                              </span>
-                            )}
                           </div>
                         </div>
-                        <p className="text-sm admin-text-secondary">{bid.comment}</p>
+                        <p className="text-sm admin-text-secondary">{contract.description}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {selectedTask.bids.length === 0 && (
+              {selectedContract._count.bids === 0 && (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--background-gray)' }}>
                     <span className="text-2xl">👥</span>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Откликов пока нет</h3>
                   <p className="admin-text-secondary">
-                    Ученики еще не откликнулись на это задание.
+                    Ученики еще не откликнулись на этот контракт.
                   </p>
                 </div>
               )}
@@ -712,12 +592,12 @@ export default function ContractsPage() {
         </div>
       )}
 
-      {/* Модальное окно добавления/редактирования задания */}
+      {/* Модальное окно добавления/редактирования контракта */}
       <ContractModal 
         isOpen={contractModalOpen} 
         onClose={handleCloseModal}
-        task={editingTask}
-        onSave={handleSaveTask}
+        contract={editingContract}
+        onSave={handleSaveContract}
       />
     </div>
   );

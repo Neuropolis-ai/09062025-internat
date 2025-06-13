@@ -20,12 +20,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('contracts')
 @Controller('contracts')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать новый контракт' })
   @ApiResponse({ status: 201, description: 'Контракт успешно создан' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
@@ -35,14 +35,14 @@ export class ContractsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Получить все контракты' })
+  @ApiOperation({ summary: 'Получить все контракты (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Список контрактов' })
   async findAll() {
     return this.contractsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Получить контракт по ID' })
+  @ApiOperation({ summary: 'Получить контракт по ID (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Данные контракта' })
   @ApiResponse({ status: 404, description: 'Контракт не найден' })
   async findOne(@Param('id') id: string) {
@@ -50,6 +50,8 @@ export class ContractsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить контракт' })
   @ApiResponse({ status: 200, description: 'Контракт обновлен' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
@@ -59,6 +61,8 @@ export class ContractsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить контракт' })
   @ApiResponse({ status: 204, description: 'Контракт удален' })
@@ -69,6 +73,8 @@ export class ContractsController {
   }
 
   @Post(':id/bids')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Подать заявку на контракт' })
   @ApiResponse({ status: 201, description: 'Заявка подана' })
   @ApiResponse({ status: 400, description: 'Некорректная заявка или контракт закрыт' })
@@ -83,7 +89,7 @@ export class ContractsController {
   }
 
   @Get(':id/bids')
-  @ApiOperation({ summary: 'Получить все заявки контракта' })
+  @ApiOperation({ summary: 'Получить все заявки контракта (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Список заявок' })
   @ApiResponse({ status: 404, description: 'Контракт не найден' })
   async getContractBids(@Param('id') contractId: string) {
@@ -91,6 +97,8 @@ export class ContractsController {
   }
 
   @Post(':id/bids/:bidId/accept')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Принять заявку на контракт' })
   @ApiResponse({ status: 200, description: 'Заявка принята' })
   @ApiResponse({ status: 400, description: 'Заявка уже обработана или контракт не открыт' })
@@ -100,6 +108,8 @@ export class ContractsController {
   }
 
   @Post(':id/complete')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Завершить контракт' })
   @ApiResponse({ status: 200, description: 'Контракт завершен' })
   @ApiResponse({ status: 400, description: 'Контракт не в работе' })
