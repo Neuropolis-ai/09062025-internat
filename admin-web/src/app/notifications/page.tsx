@@ -1,198 +1,148 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import NotificationModal from '../../components/NotificationModal';
 
+// Обновленные интерфейсы для соответствия backend API
 interface Notification {
   id: string;
   title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  target: 'all' | 'students' | 'teachers' | 'parents' | 'specific';
-  targetDetails?: string;
-  isActive: boolean;
-  isImportant: boolean;
+  content: string;
+  type: 'GENERAL' | 'SYSTEM' | 'ACHIEVEMENT' | 'TRANSACTION' | 'AUCTION' | 'CONTRACT';
+  isGlobal: boolean;
   createdAt: string;
-  expiresAt?: string;
-  createdBy: string;
-  readCount: number;
-  totalRecipients: number;
+  updatedAt: string;
+  userNotifications: UserNotification[];
+  _count: {
+    userNotifications: number;
+  };
+}
+
+interface UserNotification {
+  id: string;
+  userId: string;
+  notificationId: string;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
 }
 
 interface NotificationFormData {
   title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  target: 'all' | 'students' | 'teachers' | 'parents' | 'specific';
-  targetDetails?: string;
-  isImportant: boolean;
-  expiresAt?: string;
+  content: string;
+  type: 'GENERAL' | 'SYSTEM' | 'ACHIEVEMENT' | 'TRANSACTION' | 'AUCTION' | 'CONTRACT';
+  isGlobal: boolean;
+  userIds?: string[];
 }
 
-// Тестовые данные уведомлений
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    title: 'Изменение расписания',
-    message: 'Уважаемые ученики! В связи с ремонтными работами занятия в кабинете 205 переносятся в кабинет 301.',
-    type: 'warning',
-    target: 'students',
-    isActive: true,
-    isImportant: true,
-    createdAt: '2024-01-20 09:00',
-    expiresAt: '2024-01-25 18:00',
-    createdBy: 'Иванова Е.П.',
-    readCount: 156,
-    totalRecipients: 247
-  },
-  {
-    id: '2',
-    title: 'Новая система L-Coin',
-    message: 'Информируем о запуске новой системы школьной валюты. Все ученики получили стартовый баланс 100 L-Coin.',
-    type: 'success',
-    target: 'all',
-    isActive: true,
-    isImportant: false,
-    createdAt: '2024-01-18 14:30',
-    createdBy: 'Администрация',
-    readCount: 402,
-    totalRecipients: 520
-  },
-  {
-    id: '3',
-    title: 'Техническое обслуживание',
-    message: 'В ночь с 22 на 23 января будет проводиться техническое обслуживание системы. Возможны кратковременные перебои в работе.',
-    type: 'info',
-    target: 'all',
-    isActive: true,
-    isImportant: false,
-    createdAt: '2024-01-19 16:45',
-    expiresAt: '2024-01-23 08:00',
-    createdBy: 'IT-отдел',
-    readCount: 298,
-    totalRecipients: 520
-  },
-  {
-    id: '4',
-    title: 'Родительское собрание 10А',
-    message: 'Уважаемые родители учеников 10А класса! Приглашаем вас на родительское собрание 25 января в 18:00.',
-    type: 'info',
-    target: 'specific',
-    targetDetails: 'Родители 10А класса',
-    isActive: true,
-    isImportant: true,
-    createdAt: '2024-01-17 12:20',
-    expiresAt: '2024-01-25 20:00',
-    createdBy: 'Петрова М.А.',
-    readCount: 18,
-    totalRecipients: 25
-  },
-  {
-    id: '5',
-    title: 'Отмена кружка робототехники',
-    message: 'Занятие кружка робототехники на 21 января отменяется по причине болезни преподавателя.',
-    type: 'error',
-    target: 'specific',
-    targetDetails: 'Участники кружка робототехники',
-    isActive: false,
-    isImportant: false,
-    createdAt: '2024-01-20 15:30',
-    expiresAt: '2024-01-21 18:00',
-    createdBy: 'Смирнов А.В.',
-    readCount: 12,
-    totalRecipients: 15
-  }
-];
-
-const typeFilters = ["Все", "Информация", "Предупреждение", "Успех", "Ошибка"];
-const targetFilters = ["Все", "Все пользователи", "Ученики", "Учителя", "Родители", "Выборочно"];
-const statusFilters = ["Все", "Активные", "Неактивные", "Важные"];
+const typeFilters = ["Все", "Общие", "Системные", "Достижения", "Транзакции", "Аукционы", "Контракты"];
+const statusFilters = ["Все", "Глобальные", "Персональные"];
 
 export default function NotificationsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState("Все");
-  const [selectedTarget, setSelectedTarget] = useState("Все");
   const [selectedStatus, setSelectedStatus] = useState("Все");
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Загрузка уведомлений из API
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3001/api/v1/notifications');
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
+      } else {
+        console.error('Ошибка загрузки уведомлений:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Ошибка сети при загрузке уведомлений:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
 
   // Статистика
-  const totalNotifications = mockNotifications.length;
-  const activeNotifications = mockNotifications.filter(n => n.isActive).length;
-  const importantNotifications = mockNotifications.filter(n => n.isImportant).length;
-  const totalReads = mockNotifications.reduce((sum, n) => sum + n.readCount, 0);
+  const totalNotifications = notifications.length;
+  const globalNotifications = notifications.filter(n => n.isGlobal).length;
+  const personalNotifications = notifications.filter(n => !n.isGlobal).length;
+  const totalRecipients = notifications.reduce((sum, n) => sum + n._count.userNotifications, 0);
 
   // Фильтрация уведомлений
-  const filteredNotifications = mockNotifications.filter(notification => {
+  const filteredNotifications = notifications.filter(notification => {
     const matchesSearch = notification.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         notification.message.toLowerCase().includes(searchQuery.toLowerCase());
+                         notification.content.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === "Все" ||
-      (selectedType === "Информация" && notification.type === "info") ||
-      (selectedType === "Предупреждение" && notification.type === "warning") ||
-      (selectedType === "Успех" && notification.type === "success") ||
-      (selectedType === "Ошибка" && notification.type === "error");
-    const matchesTarget = selectedTarget === "Все" ||
-      (selectedTarget === "Все пользователи" && notification.target === "all") ||
-      (selectedTarget === "Ученики" && notification.target === "students") ||
-      (selectedTarget === "Учителя" && notification.target === "teachers") ||
-      (selectedTarget === "Родители" && notification.target === "parents") ||
-      (selectedTarget === "Выборочно" && notification.target === "specific");
+      (selectedType === "Общие" && notification.type === "GENERAL") ||
+      (selectedType === "Системные" && notification.type === "SYSTEM") ||
+      (selectedType === "Достижения" && notification.type === "ACHIEVEMENT") ||
+      (selectedType === "Транзакции" && notification.type === "TRANSACTION") ||
+      (selectedType === "Аукционы" && notification.type === "AUCTION") ||
+      (selectedType === "Контракты" && notification.type === "CONTRACT");
     const matchesStatus = selectedStatus === "Все" ||
-      (selectedStatus === "Активные" && notification.isActive) ||
-      (selectedStatus === "Неактивные" && !notification.isActive) ||
-      (selectedStatus === "Важные" && notification.isImportant);
-    return matchesSearch && matchesType && matchesTarget && matchesStatus;
+      (selectedStatus === "Глобальные" && notification.isGlobal) ||
+      (selectedStatus === "Персональные" && !notification.isGlobal);
+    return matchesSearch && matchesType && matchesStatus;
   });
 
   const getTypeText = (type: string) => {
     switch (type) {
-      case 'info': return 'Информация';
-      case 'warning': return 'Предупреждение';
-      case 'success': return 'Успех';
-      case 'error': return 'Ошибка';
+      case 'GENERAL': return 'Общее';
+      case 'SYSTEM': return 'Системное';
+      case 'ACHIEVEMENT': return 'Достижение';
+      case 'TRANSACTION': return 'Транзакция';
+      case 'AUCTION': return 'Аукцион';
+      case 'CONTRACT': return 'Контракт';
       default: return type;
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'info': return 'bg-blue-100 text-blue-800';
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      case 'success': return 'bg-green-100 text-green-800';
-      case 'error': return 'bg-red-100 text-red-800';
+      case 'GENERAL': return 'bg-blue-100 text-blue-800';
+      case 'SYSTEM': return 'bg-gray-100 text-gray-800';
+      case 'ACHIEVEMENT': return 'bg-green-100 text-green-800';
+      case 'TRANSACTION': return 'bg-yellow-100 text-yellow-800';
+      case 'AUCTION': return 'bg-purple-100 text-purple-800';
+      case 'CONTRACT': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTargetText = (target: string, targetDetails?: string) => {
-    switch (target) {
-      case 'all': return 'Все пользователи';
-      case 'students': return 'Ученики';
-      case 'teachers': return 'Учителя';
-      case 'parents': return 'Родители';
-      case 'specific': return targetDetails || 'Выборочно';
-      default: return target;
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'info': return 'ℹ️';
-      case 'warning': return '⚠️';
-      case 'success': return '✅';
-      case 'error': return '❌';
+      case 'GENERAL': return '📢';
+      case 'SYSTEM': return '⚙️';
+      case 'ACHIEVEMENT': return '🏆';
+      case 'TRANSACTION': return '💰';
+      case 'AUCTION': return '🔨';
+      case 'CONTRACT': return '📄';
       default: return '📢';
     }
   };
 
   const formatDateTime = (dateTime: string) => {
-    return new Date(dateTime).toLocaleDateString('ru-RU');
-  };
-
-  const getReadPercentage = (readCount: number, totalRecipients: number) => {
-    return Math.round((readCount / totalRecipients) * 100);
+    return new Date(dateTime).toLocaleDateString('ru-RU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const handleEditNotification = (notification: Notification) => {
@@ -200,18 +150,24 @@ export default function NotificationsPage() {
     setNotificationModalOpen(true);
   };
 
-  const handleDeleteNotification = (notification: Notification) => {
+  const handleDeleteNotification = async (notification: Notification) => {
     if (confirm(`Вы уверены, что хотите удалить уведомление "${notification.title}"?`)) {
-      // TODO: API-запрос на удаление
-      console.log('Удаление уведомления:', notification);
-      alert(`Уведомление "${notification.title}" удалено`);
+      try {
+        const response = await fetch(`http://localhost:3001/api/v1/notifications/${notification.id}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          await loadNotifications(); // Перезагружаем список
+          alert(`Уведомление "${notification.title}" удалено`);
+        } else {
+          alert('Ошибка при удалении уведомления');
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении уведомления:', error);
+        alert('Ошибка при удалении уведомления');
+      }
     }
-  };
-
-  const handleToggleActive = (notification: Notification) => {
-    // TODO: API-запрос на изменение статуса
-    console.log('Изменение статуса уведомления:', notification);
-    alert(`Статус уведомления "${notification.title}" изменен`);
   };
 
   const handleAddNotification = () => {
@@ -219,15 +175,40 @@ export default function NotificationsPage() {
     setNotificationModalOpen(true);
   };
 
-  const handleSaveNotification = (notificationData: NotificationFormData) => {
-    if (editingNotification) {
-      // TODO: API-запрос на обновление уведомления
-      console.log('Обновление уведомления:', { ...editingNotification, ...notificationData });
-      alert(`Уведомление "${notificationData.title}" обновлено!`);
-    } else {
-      // TODO: API-запрос на создание уведомления
-      console.log('Создание уведомления:', notificationData);
-      alert(`Уведомление "${notificationData.title}" создано!`);
+  const handleSaveNotification = async (notificationData: NotificationFormData) => {
+    try {
+      let response;
+      
+      if (editingNotification) {
+        // Обновление существующего уведомления
+        response = await fetch(`http://localhost:3001/api/v1/notifications/${editingNotification.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notificationData),
+        });
+      } else {
+        // Создание нового уведомления
+        response = await fetch('http://localhost:3001/api/v1/notifications', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(notificationData),
+        });
+      }
+
+      if (response.ok) {
+        await loadNotifications(); // Перезагружаем список
+        alert(`Уведомление "${notificationData.title}" ${editingNotification ? 'обновлено' : 'создано'}!`);
+      } else {
+        const errorData = await response.json();
+        alert(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`);
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении уведомления:', error);
+      alert('Ошибка при сохранении уведомления');
     }
   };
 
@@ -235,6 +216,20 @@ export default function NotificationsPage() {
     setNotificationModalOpen(false);
     setEditingNotification(null);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen admin-container flex">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Загрузка уведомлений...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen admin-container flex">
@@ -308,13 +303,13 @@ export default function NotificationsPage() {
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
-                        <span className="text-white font-bold">🟢</span>
+                        <span className="text-white font-bold">🌐</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Активных</dt>
-                        <dd className="text-lg font-medium text-gray-900">{activeNotifications}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Глобальных</dt>
+                        <dd className="text-lg font-medium text-gray-900">{globalNotifications}</dd>
                       </dl>
                     </div>
                   </div>
@@ -326,13 +321,13 @@ export default function NotificationsPage() {
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
-                        <span className="text-white font-bold">⭐</span>
+                        <span className="text-white font-bold">👤</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Важных</dt>
-                        <dd className="text-lg font-medium text-gray-900">{importantNotifications}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Персональных</dt>
+                        <dd className="text-lg font-medium text-gray-900">{personalNotifications}</dd>
                       </dl>
                     </div>
                   </div>
@@ -344,13 +339,13 @@ export default function NotificationsPage() {
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ backgroundColor: 'var(--primary-burgundy)' }}>
-                        <span className="text-white font-bold">👁️</span>
+                        <span className="text-white font-bold">👥</span>
                       </div>
                     </div>
                     <div className="ml-5 w-0 flex-1">
                       <dl>
-                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего прочтений</dt>
-                        <dd className="text-lg font-medium text-gray-900">{totalReads}</dd>
+                        <dt className="text-sm font-medium admin-text-secondary truncate">Всего получателей</dt>
+                        <dd className="text-lg font-medium text-gray-900">{totalRecipients}</dd>
                       </dl>
                     </div>
                   </div>
@@ -361,7 +356,7 @@ export default function NotificationsPage() {
             {/* Фильтры и поиск */}
             <div className="admin-card mb-6">
               <div className="px-4 py-5 sm:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium admin-text-secondary mb-2">
                       Поиск уведомлений
@@ -369,7 +364,7 @@ export default function NotificationsPage() {
                     <input
                       type="text"
                       className="admin-input w-full"
-                      placeholder="Поиск по заголовку или тексту..."
+                      placeholder="Поиск по заголовку или содержанию..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -386,21 +381,6 @@ export default function NotificationsPage() {
                     >
                       {typeFilters.map(type => (
                         <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium admin-text-secondary mb-2">
-                      Адресат
-                    </label>
-                    <select
-                      className="admin-input w-full"
-                      value={selectedTarget}
-                      onChange={(e) => setSelectedTarget(e.target.value)}
-                    >
-                      {targetFilters.map(target => (
-                        <option key={target} value={target}>{target}</option>
                       ))}
                     </select>
                   </div>
@@ -462,8 +442,7 @@ export default function NotificationsPage() {
                     {filteredNotifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`border rounded-lg p-4 ${notification.isImportant ? 'border-red-300 bg-red-50' : ''}`}
-                        style={{ borderColor: notification.isImportant ? '#fca5a5' : 'var(--divider)' }}
+                        className={`border rounded-lg p-4 ${notification.isGlobal ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -471,64 +450,43 @@ export default function NotificationsPage() {
                               <span className="text-xl">{getTypeIcon(notification.type)}</span>
                               <h4 className="text-lg font-medium text-gray-900">
                                 {notification.title}
-                                {notification.isImportant && <span className="ml-2 text-red-600">⭐</span>}
+                                {notification.isGlobal && <span className="ml-2 text-blue-600">🌐</span>}
                               </h4>
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(notification.type)}`}>
                                 {getTypeText(notification.type)}
                               </span>
-                              {notification.isActive ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  Активно
+                              {notification.isGlobal ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Глобальное
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  Неактивно
+                                  Персональное
                                 </span>
                               )}
                             </div>
                             
                             <p className="text-sm admin-text-secondary mb-3 line-clamp-2">
-                              {notification.message}
+                              {notification.content}
                             </p>
 
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm admin-text-secondary">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm admin-text-secondary">
                               <div>
-                                <span className="font-medium">Адресат:</span>
-                                <div>{getTargetText(notification.target, notification.targetDetails)}</div>
-                              </div>
-                              <div>
-                                <span className="font-medium">Прочитано:</span>
-                                <div>{notification.readCount} из {notification.totalRecipients} ({getReadPercentage(notification.readCount, notification.totalRecipients)}%)</div>
+                                <span className="font-medium">Получателей:</span>
+                                <div>{notification._count.userNotifications} пользователей</div>
                               </div>
                               <div>
                                 <span className="font-medium">Создано:</span>
                                 <div>{formatDateTime(notification.createdAt)}</div>
                               </div>
                               <div>
-                                <span className="font-medium">Автор:</span>
-                                <div>{notification.createdBy}</div>
+                                <span className="font-medium">Обновлено:</span>
+                                <div>{formatDateTime(notification.updatedAt)}</div>
                               </div>
                             </div>
-
-                            {notification.expiresAt && (
-                              <div className="mt-2 text-sm admin-text-secondary">
-                                <span className="font-medium">Истекает:</span> {formatDateTime(notification.expiresAt)}
-                              </div>
-                            )}
                           </div>
 
                           <div className="flex items-center space-x-2 ml-4">
-                            <button
-                              onClick={() => handleToggleActive(notification)}
-                              className={`p-2 rounded ${
-                                notification.isActive 
-                                  ? 'text-red-600 hover:bg-red-50' 
-                                  : 'text-green-600 hover:bg-green-50'
-                              }`}
-                              title={notification.isActive ? 'Деактивировать' : 'Активировать'}
-                            >
-                              {notification.isActive ? '🔴' : '🟢'}
-                            </button>
                             <button
                               onClick={() => handleEditNotification(notification)}
                               className="p-2 text-blue-600 hover:bg-blue-50 rounded"

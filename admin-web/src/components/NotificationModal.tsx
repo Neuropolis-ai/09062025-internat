@@ -5,27 +5,37 @@ import React, { useState, useEffect } from 'react';
 interface Notification {
   id: string;
   title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  target: 'all' | 'students' | 'teachers' | 'parents' | 'specific';
-  targetDetails?: string;
-  isActive: boolean;
-  isImportant: boolean;
+  content: string;
+  type: 'GENERAL' | 'SYSTEM' | 'ACHIEVEMENT' | 'TRANSACTION' | 'AUCTION' | 'CONTRACT';
+  isGlobal: boolean;
   createdAt: string;
-  expiresAt?: string;
-  createdBy: string;
-  readCount: number;
-  totalRecipients: number;
+  updatedAt: string;
+  userNotifications: UserNotification[];
+  _count: {
+    userNotifications: number;
+  };
+}
+
+interface UserNotification {
+  id: string;
+  userId: string;
+  notificationId: string;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
 }
 
 interface NotificationFormData {
   title: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'error';
-  target: 'all' | 'students' | 'teachers' | 'parents' | 'specific';
-  targetDetails?: string;
-  isImportant: boolean;
-  expiresAt?: string;
+  content: string;
+  type: 'GENERAL' | 'SYSTEM' | 'ACHIEVEMENT' | 'TRANSACTION' | 'AUCTION' | 'CONTRACT';
+  isGlobal: boolean;
+  userIds?: string[];
 }
 
 interface NotificationModalProps {
@@ -38,36 +48,31 @@ interface NotificationModalProps {
 export default function NotificationModal({ isOpen, onClose, notification, onSave }: NotificationModalProps) {
   const [formData, setFormData] = useState<NotificationFormData>({
     title: '',
-    message: '',
-    type: 'info',
-    target: 'all',
-    targetDetails: '',
-    isImportant: false,
-    expiresAt: ''
+    content: '',
+    type: 'GENERAL',
+    isGlobal: true,
+    userIds: []
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (notification) {
       setFormData({
         title: notification.title,
-        message: notification.message,
+        content: notification.content,
         type: notification.type,
-        target: notification.target,
-        targetDetails: notification.targetDetails || '',
-        isImportant: notification.isImportant,
-        expiresAt: notification.expiresAt || ''
+        isGlobal: notification.isGlobal,
+        userIds: []
       });
     } else {
       setFormData({
         title: '',
-        message: '',
-        type: 'info',
-        target: 'all',
-        targetDetails: '',
-        isImportant: false,
-        expiresAt: ''
+        content: '',
+        type: 'GENERAL',
+        isGlobal: true,
+        userIds: []
       });
     }
     setErrors({});
@@ -80,16 +85,12 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
       newErrors.title = 'Заголовок обязателен';
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = 'Текст уведомления обязателен';
+    if (!formData.content.trim()) {
+      newErrors.content = 'Содержание уведомления обязательно';
     }
 
-    if (formData.target === 'specific' && !formData.targetDetails?.trim()) {
-      newErrors.targetDetails = 'Укажите целевую аудиторию';
-    }
-
-    if (formData.expiresAt && new Date(formData.expiresAt) <= new Date()) {
-      newErrors.expiresAt = 'Дата истечения должна быть в будущем';
+    if (!formData.isGlobal && (!formData.userIds || formData.userIds.length === 0)) {
+      newErrors.userIds = 'Для персонального уведомления укажите получателей';
     }
 
     setErrors(newErrors);
@@ -104,7 +105,7 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
     }
   };
 
-  const handleInputChange = (field: keyof NotificationFormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof NotificationFormData, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -113,27 +114,48 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'info': return 'ℹ️';
-      case 'warning': return '⚠️';
-      case 'success': return '✅';
-      case 'error': return '❌';
+      case 'GENERAL': return '📢';
+      case 'SYSTEM': return '⚙️';
+      case 'ACHIEVEMENT': return '🏆';
+      case 'TRANSACTION': return '💰';
+      case 'AUCTION': return '🔨';
+      case 'CONTRACT': return '📄';
       default: return '📢';
     }
   };
 
-  const formatDateTimeLocal = (dateTime: string) => {
-    if (!dateTime) return '';
-    const date = new Date(dateTime);
-    return date.toISOString().slice(0, 16);
+  const getTypeText = (type: string) => {
+    switch (type) {
+      case 'GENERAL': return 'Общее';
+      case 'SYSTEM': return 'Системное';
+      case 'ACHIEVEMENT': return 'Достижение';
+      case 'TRANSACTION': return 'Транзакция';
+      case 'AUCTION': return 'Аукцион';
+      case 'CONTRACT': return 'Контракт';
+      default: return type;
+    }
   };
 
-  const getTargetDescription = (target: string) => {
-    switch (target) {
-      case 'all': return 'Все пользователи системы';
-      case 'students': return 'Все ученики лицея';
-      case 'teachers': return 'Все учителя';
-      case 'parents': return 'Все родители';
-      case 'specific': return 'Выборочная группа';
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'GENERAL': return 'bg-blue-100 text-blue-800';
+      case 'SYSTEM': return 'bg-gray-100 text-gray-800';
+      case 'ACHIEVEMENT': return 'bg-green-100 text-green-800';
+      case 'TRANSACTION': return 'bg-yellow-100 text-yellow-800';
+      case 'AUCTION': return 'bg-purple-100 text-purple-800';
+      case 'CONTRACT': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTypeDescription = (type: string) => {
+    switch (type) {
+      case 'GENERAL': return 'Общие объявления и информация';
+      case 'SYSTEM': return 'Системные сообщения';
+      case 'ACHIEVEMENT': return 'Уведомления о достижениях';
+      case 'TRANSACTION': return 'Уведомления о транзакциях';
+      case 'AUCTION': return 'Уведомления об аукционах';
+      case 'CONTRACT': return 'Уведомления о контрактах';
       default: return '';
     }
   };
@@ -178,162 +200,218 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Основная информация */}
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900 mb-3">Основная информация</h4>
-                      
-                      {/* Заголовок */}
-                      <div>
-                        <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Заголовок уведомления *
-                        </label>
-                        <input
-                          type="text"
-                          className={`admin-input w-full ${errors.title ? 'border-red-500' : ''}`}
-                          placeholder="Введите заголовок уведомления"
-                          value={formData.title}
-                          onChange={(e) => handleInputChange('title', e.target.value)}
-                        />
-                        {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
-                      </div>
+                  {/* Табы для переключения между формой и превью */}
+                  <div className="flex border-b mb-6">
+                    <button
+                      type="button"
+                      className={`px-4 py-2 font-medium text-sm ${!showPreview ? 'border-b-2 text-blue-600' : 'text-gray-500'}`}
+                      style={{ borderColor: !showPreview ? 'var(--primary-burgundy)' : 'transparent' }}
+                      onClick={() => setShowPreview(false)}
+                    >
+                      📝 Редактирование
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-4 py-2 font-medium text-sm ${showPreview ? 'border-b-2 text-blue-600' : 'text-gray-500'}`}
+                      style={{ borderColor: showPreview ? 'var(--primary-burgundy)' : 'transparent' }}
+                      onClick={() => setShowPreview(true)}
+                    >
+                      👁️ Превью
+                    </button>
+                  </div>
 
-                      {/* Тип уведомления */}
-                      <div>
-                        <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Тип уведомления
-                        </label>
-                        <select
-                          className="admin-input w-full"
-                          value={formData.type}
-                          onChange={(e) => handleInputChange('type', e.target.value as 'info' | 'warning' | 'success' | 'error')}
-                        >
-                          <option value="info">ℹ️ Информация</option>
-                          <option value="warning">⚠️ Предупреждение</option>
-                          <option value="success">✅ Успех</option>
-                          <option value="error">❌ Ошибка</option>
-                        </select>
-                      </div>
-
-                      {/* Текст уведомления */}
-                      <div>
-                        <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Текст уведомления *
-                        </label>
-                        <textarea
-                          rows={4}
-                          className={`admin-input w-full resize-none ${errors.message ? 'border-red-500' : ''}`}
-                          placeholder="Введите подробный текст уведомления..."
-                          value={formData.message}
-                          onChange={(e) => handleInputChange('message', e.target.value)}
-                        />
-                        {errors.message && <p className="text-red-500 text-xs mt-1">{errors.message}</p>}
-                        <p className="text-xs admin-text-secondary mt-1">
-                          Символов: {formData.message.length}/500
-                        </p>
-                      </div>
-
-                      {/* Дата истечения */}
-                      <div>
-                        <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Дата истечения (необязательно)
-                        </label>
-                        <input
-                          type="datetime-local"
-                          className={`admin-input w-full ${errors.expiresAt ? 'border-red-500' : ''}`}
-                          value={formatDateTimeLocal(formData.expiresAt || '')}
-                          onChange={(e) => handleInputChange('expiresAt', e.target.value)}
-                        />
-                        {errors.expiresAt && <p className="text-red-500 text-xs mt-1">{errors.expiresAt}</p>}
-                        <p className="text-xs admin-text-secondary mt-1">
-                          Если не указано, уведомление будет активно до ручного отключения
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Настройки доставки */}
-                    <div className="space-y-4">
-                      <h4 className="font-medium text-gray-900 mb-3">Настройки доставки</h4>
-                      
-                      {/* Целевая аудитория */}
-                      <div>
-                        <label className="block text-sm font-medium admin-text-secondary mb-1">
-                          Целевая аудитория
-                        </label>
-                        <select
-                          className="admin-input w-full"
-                          value={formData.target}
-                          onChange={(e) => handleInputChange('target', e.target.value as 'all' | 'students' | 'teachers' | 'parents' | 'specific')}
-                        >
-                          <option value="all">👥 Все пользователи</option>
-                          <option value="students">🎓 Ученики</option>
-                          <option value="teachers">👨‍🏫 Учителя</option>
-                          <option value="parents">👪 Родители</option>
-                          <option value="specific">🎯 Выборочно</option>
-                        </select>
-                        <p className="text-xs admin-text-secondary mt-1">
-                          {getTargetDescription(formData.target)}
-                        </p>
-                      </div>
-
-                      {/* Детали целевой аудитории */}
-                      {formData.target === 'specific' && (
+                  {!showPreview ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Основная информация */}
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Основная информация</h4>
+                        
+                        {/* Заголовок */}
                         <div>
                           <label className="block text-sm font-medium admin-text-secondary mb-1">
-                            Описание целевой группы *
+                            Заголовок уведомления *
                           </label>
                           <input
                             type="text"
-                            className={`admin-input w-full ${errors.targetDetails ? 'border-red-500' : ''}`}
-                            placeholder="Например: Ученики 10А класса, Участники кружка робототехники"
-                            value={formData.targetDetails}
-                            onChange={(e) => handleInputChange('targetDetails', e.target.value)}
+                            className={`admin-input w-full ${errors.title ? 'border-red-500' : ''}`}
+                            placeholder="Введите заголовок уведомления"
+                            value={formData.title}
+                            onChange={(e) => handleInputChange('title', e.target.value)}
                           />
-                          {errors.targetDetails && <p className="text-red-500 text-xs mt-1">{errors.targetDetails}</p>}
+                          {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
                         </div>
-                      )}
 
-                      {/* Важность */}
-                      <div>
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            className="form-checkbox h-4 w-4 rounded"
-                            style={{ color: 'var(--primary-burgundy)' }}
-                            checked={formData.isImportant}
-                            onChange={(e) => handleInputChange('isImportant', e.target.checked)}
+                        {/* Содержание */}
+                        <div>
+                          <label className="block text-sm font-medium admin-text-secondary mb-1">
+                            Содержание уведомления *
+                          </label>
+                          <textarea
+                            className={`admin-input w-full h-32 ${errors.content ? 'border-red-500' : ''}`}
+                            placeholder="Введите текст уведомления"
+                            value={formData.content}
+                            onChange={(e) => handleInputChange('content', e.target.value)}
+                            rows={4}
                           />
-                          <span className="ml-2 text-sm font-medium admin-text-secondary">
-                            ⭐ Важное уведомление
-                          </span>
-                        </label>
-                        <p className="text-xs admin-text-secondary mt-1 ml-6">
-                          Важные уведомления выделяются в интерфейсе и отправляются push-уведомлениями
-                        </p>
+                          {errors.content && <p className="text-red-500 text-xs mt-1">{errors.content}</p>}
+                        </div>
+
+                        {/* Тип уведомления */}
+                        <div>
+                          <label className="block text-sm font-medium admin-text-secondary mb-1">
+                            Тип уведомления
+                          </label>
+                          <select
+                            className="admin-input w-full"
+                            value={formData.type}
+                            onChange={(e) => handleInputChange('type', e.target.value as any)}
+                          >
+                            <option value="GENERAL">📢 Общее</option>
+                            <option value="SYSTEM">⚙️ Системное</option>
+                            <option value="ACHIEVEMENT">🏆 Достижение</option>
+                            <option value="TRANSACTION">💰 Транзакция</option>
+                            <option value="AUCTION">🔨 Аукцион</option>
+                            <option value="CONTRACT">📄 Контракт</option>
+                          </select>
+                          <p className="text-xs admin-text-secondary mt-1">
+                            {getTypeDescription(formData.type)}
+                          </p>
+                        </div>
                       </div>
 
-                      {/* Превью */}
-                      <div className="border rounded-lg p-4" style={{ backgroundColor: 'var(--background-gray)' }}>
-                        <h5 className="font-medium text-gray-900 mb-2">Превью уведомления</h5>
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg">{getTypeIcon(formData.type)}</span>
-                            <span className="font-medium">{formData.title || 'Заголовок уведомления'}</span>
-                            {formData.isImportant && <span className="text-red-600">⭐</span>}
+                      {/* Настройки отправки */}
+                      <div className="space-y-4">
+                        <h4 className="font-medium text-gray-900 mb-3">Настройки отправки</h4>
+
+                        {/* Тип отправки */}
+                        <div>
+                          <label className="block text-sm font-medium admin-text-secondary mb-2">
+                            Тип отправки
+                          </label>
+                          <div className="space-y-2">
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="sendType"
+                                className="mr-2"
+                                checked={formData.isGlobal}
+                                onChange={() => handleInputChange('isGlobal', true)}
+                              />
+                              <span className="text-sm">🌐 Глобальное (всем пользователям)</span>
+                            </label>
+                            <label className="flex items-center">
+                              <input
+                                type="radio"
+                                name="sendType"
+                                className="mr-2"
+                                checked={!formData.isGlobal}
+                                onChange={() => handleInputChange('isGlobal', false)}
+                              />
+                              <span className="text-sm">👤 Персональное (выборочно)</span>
+                            </label>
                           </div>
-                          <p className="text-sm admin-text-secondary">
-                            {formData.message || 'Текст уведомления будет отображаться здесь...'}
-                          </p>
-                          <div className="flex items-center justify-between text-xs admin-text-secondary">
-                            <span>Для: {getTargetDescription(formData.target)}</span>
-                            {formData.expiresAt && (
-                              <span>До: {new Date(formData.expiresAt).toLocaleDateString('ru-RU')}</span>
-                            )}
+                        </div>
+
+                        {/* Список получателей для персональных уведомлений */}
+                        {!formData.isGlobal && (
+                          <div>
+                            <label className="block text-sm font-medium admin-text-secondary mb-1">
+                              ID получателей *
+                            </label>
+                            <textarea
+                              className={`admin-input w-full h-24 ${errors.userIds ? 'border-red-500' : ''}`}
+                              placeholder="Введите ID пользователей через запятую (например: user1, user2, user3)"
+                              value={formData.userIds?.join(', ') || ''}
+                              onChange={(e) => {
+                                const userIds = e.target.value.split(',').map(id => id.trim()).filter(id => id);
+                                handleInputChange('userIds', userIds);
+                              }}
+                              rows={3}
+                            />
+                            {errors.userIds && <p className="text-red-500 text-xs mt-1">{errors.userIds}</p>}
+                            <p className="text-xs admin-text-secondary mt-1">
+                              Введите ID пользователей через запятую для персональной отправки
+                            </p>
                           </div>
+                        )}
+
+                        {/* Информационная карточка */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-blue-900 mb-2">ℹ️ Информация</h5>
+                          <ul className="text-sm text-blue-800 space-y-1">
+                            <li>• Глобальные уведомления отправляются всем активным пользователям</li>
+                            <li>• Персональные уведомления отправляются только указанным пользователям</li>
+                            <li>• Тип уведомления определяет его категорию и отображение</li>
+                            <li>• Все уведомления сохраняются в истории</li>
+                          </ul>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Превью уведомления */
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-900 mb-4">Превью уведомления</h4>
+                      
+                      <div className={`border rounded-lg p-4 ${formData.isGlobal ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}`}>
+                        <div className="flex items-start space-x-3">
+                          <span className="text-2xl">{getTypeIcon(formData.type)}</span>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-medium text-gray-900">
+                                {formData.title || 'Заголовок уведомления'}
+                                {formData.isGlobal && <span className="ml-2 text-blue-600">🌐</span>}
+                              </h4>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeColor(formData.type)}`}>
+                                {getTypeText(formData.type)}
+                              </span>
+                              {formData.isGlobal ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Глобальное
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                  Персональное
+                                </span>
+                              )}
+                            </div>
+                            
+                            <p className="text-sm admin-text-secondary mb-3">
+                              {formData.content || 'Содержание уведомления будет отображаться здесь'}
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-4 text-sm admin-text-secondary">
+                              <div>
+                                <span className="font-medium">Получателей:</span>
+                                <div>
+                                  {formData.isGlobal 
+                                    ? 'Все пользователи' 
+                                    : `${formData.userIds?.length || 0} пользователей`
+                                  }
+                                </div>
+                              </div>
+                              <div>
+                                <span className="font-medium">Создано:</span>
+                                <div>{new Date().toLocaleDateString('ru-RU')}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {!formData.isGlobal && formData.userIds && formData.userIds.length > 0 && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h5 className="font-medium text-gray-900 mb-2">Список получателей:</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {formData.userIds.map((userId, index) => (
+                              <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-800">
+                                {userId}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -344,10 +422,10 @@ export default function NotificationModal({ isOpen, onClose, notification, onSav
                 type="submit"
                 className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:ml-3 sm:w-auto sm:text-sm transition-colors"
                 style={{ backgroundColor: 'var(--primary-burgundy)' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#7A1F32'}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-burgundy-hover)'}
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--primary-burgundy)'}
               >
-                {notification ? 'Сохранить изменения' : 'Создать уведомление'}
+                {notification ? 'Обновить уведомление' : 'Создать уведомление'}
               </button>
               <button
                 type="button"
