@@ -1,107 +1,44 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import AuctionModal from '../../components/AuctionModal';
 
 interface AuctionLot {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  startPrice: number;
-  currentPrice: number;
-  category: string;
-  image: string;
-  status: 'active' | 'completed' | 'upcoming';
-  endDate: string;
-  bidsCount: number;
-  winner?: string;
-  seller: string;
+  startingPrice: string;
+  currentPrice: string;
+  imageUrl?: string;
+  status: 'ACTIVE' | 'COMPLETED' | 'DRAFT' | 'CANCELLED';
+  startTime: string;
+  endTime: string;
+  minBidIncrement: string;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  winner?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  _count: {
+    bids: number;
+  };
 }
 
 interface LotFormData {
   title: string;
   description: string;
-  startPrice: number;
-  category: string;
-  image: string;
-  duration: number;
-  seller: string;
-  minBidStep: number;
+  startingPrice: number;
+  minBidIncrement: number;
+  startTime: string;
+  endTime: string;
+  imageUrl?: string;
 }
-
-// Тестовые данные лотов
-const mockLots: AuctionLot[] = [
-  {
-    id: 1,
-    title: "Футболка с логотипом лицея",
-    description: "Эксклюзивная футболка с символикой лицея, размер M",
-    startPrice: 200,
-    currentPrice: 450,
-    category: "Одежда",
-    image: "👕",
-    status: "active",
-    endDate: "2024-12-15T18:00:00Z",
-    bidsCount: 12,
-    seller: "Администрация"
-  },
-  {
-    id: 2,
-    title: "Набор канцтоваров премиум",
-    description: "Качественные ручки, карандаши, маркеры в подарочной упаковке",
-    startPrice: 150,
-    currentPrice: 280,
-    category: "Канцтовары",
-    image: "📝",
-    status: "active",
-    endDate: "2024-12-14T15:30:00Z",
-    bidsCount: 8,
-    seller: "Учебная часть"
-  },
-  {
-    id: 3,
-    title: "Кружка с гербом лицея",
-    description: "Керамическая кружка с официальным гербом лицея",
-    startPrice: 100,
-    currentPrice: 350,
-    category: "Сувениры",
-    image: "☕",
-    status: "completed",
-    endDate: "2024-12-10T12:00:00Z",
-    bidsCount: 15,
-    winner: "Петрова Мария Сергеевна",
-    seller: "Творческая мастерская"
-  },
-  {
-    id: 4,
-    title: "Книга стихов выпускников",
-    description: "Авторский сборник стихов от выпускников лицея",
-    startPrice: 300,
-    currentPrice: 300,
-    category: "Книги",
-    image: "📚",
-    status: "upcoming",
-    endDate: "2024-12-20T20:00:00Z",
-    bidsCount: 0,
-    seller: "Литературный клуб"
-  },
-  {
-    id: 5,
-    title: "Настольная игра 'Лицейская монополия'",
-    description: "Уникальная настольная игра на тему лицея",
-    startPrice: 500,
-    currentPrice: 750,
-    category: "Игры",
-    image: "🎲",
-    status: "active",
-    endDate: "2024-12-16T16:00:00Z",
-    bidsCount: 6,
-    seller: "Совет учеников"
-  }
-];
-
-const categories = ["Все", "Одежда", "Канцтовары", "Сувениры", "Книги", "Игры"];
-const statusFilters = ["Все", "Активные", "Завершенные", "Предстоящие"];
 
 export default function AuctionPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -110,39 +47,64 @@ export default function AuctionPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [auctionModalOpen, setAuctionModalOpen] = useState(false);
   const [editingLot, setEditingLot] = useState<AuctionLot | null>(null);
+  const [auctions, setAuctions] = useState<AuctionLot[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadAuctions();
+  }, []);
+
+  const loadAuctions = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:3001/api/v1/auctions');
+      if (response.ok) {
+        const data = await response.json();
+        setAuctions(data);
+      } else {
+        console.error('Ошибка загрузки аукционов:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки аукционов:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Статистические данные
-  const totalLots = mockLots.length;
-  const activeLots = mockLots.filter(lot => lot.status === 'active').length;
-  const completedLots = mockLots.filter(lot => lot.status === 'completed').length;
-  const totalBids = mockLots.reduce((sum, lot) => sum + lot.bidsCount, 0);
+  const totalLots = auctions.length;
+  const activeLots = auctions.filter(lot => lot.status === 'ACTIVE').length;
+  const completedLots = auctions.filter(lot => lot.status === 'COMPLETED').length;
+  const totalBids = auctions.reduce((sum, lot) => sum + lot._count.bids, 0);
 
   // Фильтрация лотов
-  const filteredLots = mockLots.filter(lot => {
-    const matchesCategory = selectedCategory === "Все" || lot.category === selectedCategory;
+  const filteredLots = auctions.filter(lot => {
     const matchesStatus = selectedStatus === "Все" || 
-      (selectedStatus === "Активные" && lot.status === "active") ||
-      (selectedStatus === "Завершенные" && lot.status === "completed") ||
-      (selectedStatus === "Предстоящие" && lot.status === "upcoming");
+      (selectedStatus === "Активные" && lot.status === "ACTIVE") ||
+      (selectedStatus === "Завершенные" && lot.status === "COMPLETED") ||
+      (selectedStatus === "Черновики" && lot.status === "DRAFT") ||
+      (selectedStatus === "Отмененные" && lot.status === "CANCELLED");
     const matchesSearch = lot.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          lot.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesStatus && matchesSearch;
+    return matchesStatus && matchesSearch;
   });
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'active': return 'Активный';
-      case 'completed': return 'Завершен';
-      case 'upcoming': return 'Предстоящий';
+      case 'ACTIVE': return 'Активный';
+      case 'COMPLETED': return 'Завершен';
+      case 'DRAFT': return 'Черновик';
+      case 'CANCELLED': return 'Отменен';
       default: return status;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'upcoming': return 'bg-blue-100 text-blue-800';
+      case 'ACTIVE': return 'bg-green-100 text-green-800';
+      case 'COMPLETED': return 'bg-gray-100 text-gray-800';
+      case 'DRAFT': return 'bg-blue-100 text-blue-800';
+      case 'CANCELLED': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -168,18 +130,41 @@ export default function AuctionPage() {
     setAuctionModalOpen(true);
   };
 
-  const handleDeleteLot = (lot: AuctionLot) => {
+  const handleDeleteLot = async (lot: AuctionLot) => {
     if (confirm(`Вы уверены, что хотите удалить лот "${lot.title}"?`)) {
-      // TODO: API-запрос на удаление
-      console.log('Удаление лота:', lot);
-      alert(`Лот "${lot.title}" удален`);
+      try {
+        const response = await fetch(`http://localhost:3001/api/v1/auctions/${lot.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          await loadAuctions();
+          alert(`Лот "${lot.title}" удален`);
+        } else {
+          alert('Ошибка при удалении лота');
+        }
+      } catch (error) {
+        console.error('Ошибка при удалении:', error);
+        alert('Ошибка при удалении лота');
+      }
     }
   };
 
-  const handleViewBids = (lot: AuctionLot) => {
-    // TODO: Открыть модал просмотра ставок
-    console.log('Просмотр ставок лота:', lot);
-    alert(`Просмотр ставок для лота: ${lot.title}\nСтавок: ${lot.bidsCount}`);
+  const handleViewBids = async (lot: AuctionLot) => {
+    try {
+      const response = await fetch(`http://localhost:3001/api/v1/auctions/${lot.id}/bids`);
+      if (response.ok) {
+        const bids = await response.json();
+        alert(`Ставки для лота: ${lot.title}\nВсего ставок: ${bids.length}\n\n${bids.map((bid: any) => 
+          `${bid.amount} L-Coin от ${bid.bidder.firstName} ${bid.bidder.lastName} (${new Date(bid.createdAt).toLocaleString('ru-RU')})`
+        ).join('\n')}`);
+      } else {
+        alert('Ошибка при загрузке ставок');
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке ставок:', error);
+      alert('Ошибка при загрузке ставок');
+    }
   };
 
   const handleAddLot = () => {
@@ -187,15 +172,44 @@ export default function AuctionPage() {
     setAuctionModalOpen(true);
   };
 
-  const handleSaveLot = (lotData: LotFormData) => {
-    if (editingLot) {
-      // TODO: API-запрос на обновление лота
-      console.log('Обновление лота:', { ...editingLot, ...lotData });
-      alert(`Лот "${lotData.title}" обновлен!`);
-    } else {
-      // TODO: API-запрос на создание лота
-      console.log('Создание лота:', lotData);
-      alert(`Лот "${lotData.title}" создан!`);
+  const handleSaveLot = async (lotData: LotFormData) => {
+    try {
+      if (editingLot) {
+        // Обновление лота
+        const response = await fetch(`http://localhost:3001/api/v1/auctions/${editingLot.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(lotData),
+        });
+
+        if (response.ok) {
+          await loadAuctions();
+          alert(`Лот "${lotData.title}" обновлен!`);
+        } else {
+          alert('Ошибка при обновлении лота');
+        }
+      } else {
+        // Создание лота
+        const response = await fetch('http://localhost:3001/api/v1/auctions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(lotData),
+        });
+
+        if (response.ok) {
+          await loadAuctions();
+          alert(`Лот "${lotData.title}" создан!`);
+        } else {
+          alert('Ошибка при создании лота');
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении лота:', error);
+      alert('Ошибка при сохранении лота');
     }
   };
 
@@ -381,7 +395,7 @@ export default function AuctionPage() {
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
                     >
-                      {categories.map(category => (
+                      {["Все", "Одежда", "Канцтовары", "Сувениры", "Книги", "Игры"].map(category => (
                         <option key={category} value={category}>{category}</option>
                       ))}
                     </select>
@@ -396,7 +410,7 @@ export default function AuctionPage() {
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
                     >
-                      {statusFilters.map(status => (
+                      {["Все", "Активные", "Завершенные", "Черновики", "Отмененные"].map(status => (
                         <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
@@ -413,9 +427,9 @@ export default function AuctionPage() {
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(lot.status)}`}>
                             {getStatusText(lot.status)}
                           </span>
-                          {lot.status === 'active' && (
+                          {lot.status === 'ACTIVE' && (
                             <span className="text-xs admin-text-secondary">
-                              {formatTimeRemaining(lot.endDate)}
+                              {formatTimeRemaining(lot.endTime)}
                             </span>
                           )}
                         </div>
@@ -424,7 +438,7 @@ export default function AuctionPage() {
                         <div className="flex justify-center mb-4">
                           <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl"
                                style={{ backgroundColor: 'var(--background-light)' }}>
-                            {lot.image}
+                            {lot.imageUrl && <img src={lot.imageUrl} alt={lot.title} className="w-full h-full object-cover rounded-lg" />}
                           </div>
                         </div>
                         
@@ -440,7 +454,7 @@ export default function AuctionPage() {
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span className="admin-text-secondary">Стартовая цена:</span>
-                              <span className="font-medium">{lot.startPrice} токенов</span>
+                              <span className="font-medium">{lot.startingPrice} токенов</span>
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="admin-text-secondary">Текущая цена:</span>
@@ -450,16 +464,16 @@ export default function AuctionPage() {
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="admin-text-secondary">Ставок:</span>
-                              <span className="font-medium">{lot.bidsCount}</span>
+                              <span className="font-medium">{lot._count.bids}</span>
                             </div>
                             <div className="flex justify-between text-sm">
                               <span className="admin-text-secondary">Продавец:</span>
-                              <span className="font-medium">{lot.seller}</span>
+                              <span className="font-medium">{lot.creator.firstName} {lot.creator.lastName}</span>
                             </div>
                             {lot.winner && (
                               <div className="flex justify-between text-sm">
                                 <span className="admin-text-secondary">Победитель:</span>
-                                <span className="font-medium text-green-600">{lot.winner}</span>
+                                <span className="font-medium text-green-600">{lot.winner.firstName} {lot.winner.lastName}</span>
                               </div>
                             )}
                           </div>

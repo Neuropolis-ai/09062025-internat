@@ -21,12 +21,12 @@ import { User } from '@prisma/client';
 
 @ApiTags('auctions')
 @Controller('auctions')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
 export class AuctionsController {
   constructor(private readonly auctionsService: AuctionsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать новый аукцион' })
   @ApiResponse({ status: 201, description: 'Аукцион успешно создан' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
@@ -36,14 +36,14 @@ export class AuctionsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Получить все аукционы' })
+  @ApiOperation({ summary: 'Получить все аукционы (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Список аукционов' })
   async findAll() {
     return this.auctionsService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Получить аукцион по ID' })
+  @ApiOperation({ summary: 'Получить аукцион по ID (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Данные аукциона' })
   @ApiResponse({ status: 404, description: 'Аукцион не найден' })
   async findOne(@Param('id') id: string) {
@@ -51,6 +51,8 @@ export class AuctionsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить аукцион' })
   @ApiResponse({ status: 200, description: 'Аукцион обновлен' })
   @ApiResponse({ status: 400, description: 'Некорректные данные' })
@@ -60,6 +62,8 @@ export class AuctionsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Удалить аукцион' })
   @ApiResponse({ status: 204, description: 'Аукцион удален' })
@@ -70,6 +74,8 @@ export class AuctionsController {
   }
 
   @Post(':id/bids')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Сделать ставку на аукционе' })
   @ApiResponse({ status: 201, description: 'Ставка размещена' })
   @ApiResponse({ status: 400, description: 'Некорректная ставка или недостаточно средств' })
@@ -84,7 +90,7 @@ export class AuctionsController {
   }
 
   @Get(':id/bids')
-  @ApiOperation({ summary: 'Получить все ставки аукциона' })
+  @ApiOperation({ summary: 'Получить все ставки аукциона (публичный endpoint)' })
   @ApiResponse({ status: 200, description: 'Список ставок' })
   @ApiResponse({ status: 404, description: 'Аукцион не найден' })
   async getAuctionBids(@Param('id') auctionId: string) {
@@ -92,6 +98,8 @@ export class AuctionsController {
   }
 
   @Post(':id/close')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Закрыть аукцион' })
   @ApiResponse({ status: 200, description: 'Аукцион закрыт' })
   @ApiResponse({ status: 400, description: 'Аукцион не активен' })
@@ -101,6 +109,8 @@ export class AuctionsController {
   }
 
   @Post(':id/activate')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Активировать аукцион' })
   @ApiResponse({ status: 200, description: 'Аукцион активирован' })
   @ApiResponse({ status: 400, description: 'Невозможно активировать аукцион' })

@@ -13,27 +13,37 @@ interface AuctionModalProps {
 interface LotFormData {
   title: string;
   description: string;
-  startPrice: number;
-  category: string;
-  image: string;
-  duration: number; // в часах
-  seller: string;
-  minBidStep: number;
+  startingPrice: number;
+  minBidIncrement: number;
+  startTime: string;
+  endTime: string;
+  imageUrl?: string;
 }
 
 interface AuctionLot {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  startPrice: number;
-  currentPrice: number;
-  category: string;
-  image: string;
-  status: 'active' | 'completed' | 'upcoming';
-  endDate: string;
-  bidsCount: number;
-  winner?: string;
-  seller: string;
+  startingPrice: string;
+  currentPrice: string;
+  imageUrl?: string;
+  status: 'ACTIVE' | 'COMPLETED' | 'DRAFT' | 'CANCELLED';
+  startTime: string;
+  endTime: string;
+  minBidIncrement: string;
+  creator: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  winner?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+  _count: {
+    bids: number;
+  };
 }
 
 const categories = ["Одежда", "Канцтовары", "Сувениры", "Книги", "Игры", "Прочее"];
@@ -44,12 +54,11 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
   const [formData, setFormData] = useState<LotFormData>({
     title: '',
     description: '',
-    startPrice: 0,
-    category: '',
-    image: '🎯',
-    duration: 24,
-    seller: '',
-    minBidStep: 10
+    startingPrice: 0,
+    minBidIncrement: 10,
+    startTime: '',
+    endTime: '',
+    imageUrl: ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,23 +69,26 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
       setFormData({
         title: editLot.title,
         description: editLot.description,
-        startPrice: editLot.startPrice,
-        category: editLot.category,
-        image: editLot.image,
-        duration: 24, // можно высчитать из endDate
-        seller: editLot.seller,
-        minBidStep: 10 // значение по умолчанию
+        startingPrice: parseInt(editLot.startingPrice),
+        minBidIncrement: parseInt(editLot.minBidIncrement),
+        startTime: editLot.startTime.slice(0, 16), // для datetime-local
+        endTime: editLot.endTime.slice(0, 16), // для datetime-local
+        imageUrl: editLot.imageUrl || ''
       });
     } else {
+      // Устанавливаем время по умолчанию
+      const now = new Date();
+      const startTime = new Date(now.getTime() + 60 * 60 * 1000); // через час
+      const endTime = new Date(now.getTime() + 25 * 60 * 60 * 1000); // через 25 часов
+      
       setFormData({
         title: '',
         description: '',
-        startPrice: 0,
-        category: '',
-        image: '🎯',
-        duration: 24,
-        seller: '',
-        minBidStep: 10
+        startingPrice: 0,
+        minBidIncrement: 10,
+        startTime: startTime.toISOString().slice(0, 16),
+        endTime: endTime.toISOString().slice(0, 16),
+        imageUrl: ''
       });
     }
     setErrors({});
@@ -91,20 +103,20 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
     if (!formData.description.trim()) {
       newErrors.description = 'Описание обязательно';
     }
-    if (formData.startPrice <= 0) {
-      newErrors.startPrice = 'Стартовая цена должна быть больше 0';
+    if (formData.startingPrice <= 0) {
+      newErrors.startingPrice = 'Стартовая цена должна быть больше 0';
     }
-    if (!formData.category) {
-      newErrors.category = 'Выберите категорию';
+    if (formData.minBidIncrement <= 0) {
+      newErrors.minBidIncrement = 'Минимальный шаг ставки должен быть больше 0';
     }
-    if (!formData.seller) {
-      newErrors.seller = 'Выберите продавца';
+    if (!formData.startTime) {
+      newErrors.startTime = 'Время начала обязательно';
     }
-    if (formData.duration <= 0) {
-      newErrors.duration = 'Длительность должна быть больше 0';
+    if (!formData.endTime) {
+      newErrors.endTime = 'Время окончания обязательно';
     }
-    if (formData.minBidStep <= 0) {
-      newErrors.minBidStep = 'Минимальный шаг ставки должен быть больше 0';
+    if (formData.startTime && formData.endTime && new Date(formData.startTime) >= new Date(formData.endTime)) {
+      newErrors.endTime = 'Время окончания должно быть позже времени начала';
     }
 
     setErrors(newErrors);
@@ -115,36 +127,33 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
     e.preventDefault();
     
     if (validateForm()) {
-      onSave(formData);
+      // Преобразуем время в ISO формат для API
+      const submitData = {
+        ...formData,
+        startTime: new Date(formData.startTime).toISOString(),
+        endTime: new Date(formData.endTime).toISOString()
+      };
+      onSave(submitData);
       handleCancel();
     }
   };
 
   const handleCancel = () => {
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 60 * 60 * 1000);
+    const endTime = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+    
     setFormData({
       title: '',
       description: '',
-      startPrice: 0,
-      category: '',
-      image: '🎯',
-      duration: 24,
-      seller: '',
-      minBidStep: 10
+      startingPrice: 0,
+      minBidIncrement: 10,
+      startTime: startTime.toISOString().slice(0, 16),
+      endTime: endTime.toISOString().slice(0, 16),
+      imageUrl: ''
     });
     setErrors({});
     onClose();
-  };
-
-  const calculateEndDate = () => {
-    const now = new Date();
-    const endDate = new Date(now.getTime() + formData.duration * 60 * 60 * 1000);
-    return endDate.toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   const isEditing = !!editLot;
@@ -175,21 +184,17 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
-              Категория *
+            <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-1">
+              URL изображения
             </label>
-            <select
-              id="category"
-              className={`admin-input w-full ${errors.category ? 'border-red-500' : ''}`}
-              value={formData.category}
-              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-            >
-              <option value="">Выберите категорию</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+            <input
+              type="url"
+              id="imageUrl"
+              className="admin-input w-full"
+              value={formData.imageUrl || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
+              placeholder="https://example.com/image.jpg"
+            />
           </div>
         </div>
 
@@ -212,126 +217,94 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
         {/* Финансовые параметры */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="startPrice" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="startingPrice" className="block text-sm font-medium text-gray-700 mb-1">
               Стартовая цена (токены) *
             </label>
             <input
               type="number"
-              id="startPrice"
+              id="startingPrice"
               min="1"
-              className={`admin-input w-full ${errors.startPrice ? 'border-red-500' : ''}`}
-              value={formData.startPrice || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, startPrice: parseInt(e.target.value) || 0 }))}
+              className={`admin-input w-full ${errors.startingPrice ? 'border-red-500' : ''}`}
+              value={formData.startingPrice || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, startingPrice: parseInt(e.target.value) || 0 }))}
               placeholder="Начальная цена в токенах"
             />
-            {errors.startPrice && <p className="text-red-500 text-xs mt-1">{errors.startPrice}</p>}
+            {errors.startingPrice && <p className="text-red-500 text-xs mt-1">{errors.startingPrice}</p>}
           </div>
 
           <div>
-            <label htmlFor="minBidStep" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="minBidIncrement" className="block text-sm font-medium text-gray-700 mb-1">
               Минимальный шаг ставки *
             </label>
             <input
               type="number"
-              id="minBidStep"
+              id="minBidIncrement"
               min="1"
-              className={`admin-input w-full ${errors.minBidStep ? 'border-red-500' : ''}`}
-              value={formData.minBidStep || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, minBidStep: parseInt(e.target.value) || 0 }))}
+              className={`admin-input w-full ${errors.minBidIncrement ? 'border-red-500' : ''}`}
+              value={formData.minBidIncrement || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, minBidIncrement: parseInt(e.target.value) || 0 }))}
               placeholder="Минимальный шаг ставки"
             />
-            {errors.minBidStep && <p className="text-red-500 text-xs mt-1">{errors.minBidStep}</p>}
+            {errors.minBidIncrement && <p className="text-red-500 text-xs mt-1">{errors.minBidIncrement}</p>}
           </div>
         </div>
 
-        {/* Продавец и длительность */}
+        {/* Время проведения аукциона */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="seller" className="block text-sm font-medium text-gray-700 mb-1">
-              Продавец *
+            <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
+              Время начала *
             </label>
-            <select
-              id="seller"
-              className={`admin-input w-full ${errors.seller ? 'border-red-500' : ''}`}
-              value={formData.seller}
-              onChange={(e) => setFormData(prev => ({ ...prev, seller: e.target.value }))}
-            >
-              <option value="">Выберите продавца</option>
-              {sellers.map(seller => (
-                <option key={seller} value={seller}>{seller}</option>
-              ))}
-            </select>
-            {errors.seller && <p className="text-red-500 text-xs mt-1">{errors.seller}</p>}
+            <input
+              type="datetime-local"
+              id="startTime"
+              className={`admin-input w-full ${errors.startTime ? 'border-red-500' : ''}`}
+              value={formData.startTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+            />
+            {errors.startTime && <p className="text-red-500 text-xs mt-1">{errors.startTime}</p>}
           </div>
 
           <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
-              Длительность (часы) *
+            <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
+              Время окончания *
             </label>
-            <select
-              id="duration"
-              className={`admin-input w-full ${errors.duration ? 'border-red-500' : ''}`}
-              value={formData.duration}
-              onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
-            >
-              <option value={1}>1 час</option>
-              <option value={6}>6 часов</option>
-              <option value={12}>12 часов</option>
-              <option value={24}>1 день</option>
-              <option value={48}>2 дня</option>
-              <option value={72}>3 дня</option>
-              <option value={168}>1 неделя</option>
-            </select>
-            {errors.duration && <p className="text-red-500 text-xs mt-1">{errors.duration}</p>}
-          </div>
-        </div>
-
-        {/* Выбор изображения */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Изображение лота
-          </label>
-          <div className="grid grid-cols-5 gap-3">
-            {availableEmojis.map(emoji => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, image: emoji }))}
-                className={`p-3 rounded-md border text-2xl transition-colors ${
-                  formData.image === emoji
-                    ? 'border-burgundy bg-burgundy/10'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                style={{
-                  borderColor: formData.image === emoji ? 'var(--primary-burgundy)' : undefined,
-                  backgroundColor: formData.image === emoji ? 'rgba(139, 36, 57, 0.1)' : undefined
-                }}
-              >
-                {emoji}
-              </button>
-            ))}
+            <input
+              type="datetime-local"
+              id="endTime"
+              className={`admin-input w-full ${errors.endTime ? 'border-red-500' : ''}`}
+              value={formData.endTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+            />
+            {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
           </div>
         </div>
 
         {/* Превью лота */}
-        {formData.title && formData.startPrice > 0 && formData.seller && (
+        {formData.title && formData.startingPrice > 0 && (
           <div className="p-4 rounded-md" style={{ backgroundColor: 'var(--background-light)' }}>
             <h4 className="text-sm font-medium text-gray-700 mb-3">Превью лота:</h4>
             <div className="admin-card">
               <div className="p-4">
                 <div className="flex justify-between items-start mb-4">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Предстоящий
+                    {isEditing ? 'Редактируется' : 'Новый'}
                   </span>
-                  <span className="text-xs admin-text-secondary">
-                    {formData.duration}ч
-                  </span>
+                  {formData.startTime && formData.endTime && (
+                    <span className="text-xs admin-text-secondary">
+                      {new Date(formData.startTime).toLocaleDateString('ru-RU')} - {new Date(formData.endTime).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex justify-center mb-4">
                   <div className="w-16 h-16 rounded-lg flex items-center justify-center text-4xl"
                        style={{ backgroundColor: 'white' }}>
-                    {formData.image}
+                    {formData.imageUrl ? (
+                      <img src={formData.imageUrl} alt={formData.title} className="w-full h-full object-cover rounded-lg" />
+                    ) : (
+                      '🎯'
+                    )}
                   </div>
                 </div>
                 
@@ -343,25 +316,25 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
                     <div className="flex justify-between text-sm">
                       <span className="admin-text-secondary">Стартовая цена:</span>
                       <span className="font-bold" style={{ color: 'var(--primary-burgundy)' }}>
-                        {formData.startPrice} токенов
+                        {formData.startingPrice} токенов
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="admin-text-secondary">Шаг ставки:</span>
-                      <span className="font-medium">{formData.minBidStep} токенов</span>
+                      <span className="font-medium">{formData.minBidIncrement} токенов</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="admin-text-secondary">Продавец:</span>
-                      <span className="font-medium">{formData.seller}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="admin-text-secondary">Категория:</span>
-                      <span className="font-medium">{formData.category}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="admin-text-secondary">Завершится:</span>
-                      <span className="font-medium">{calculateEndDate()}</span>
-                    </div>
+                    {formData.startTime && (
+                      <div className="flex justify-between text-sm">
+                        <span className="admin-text-secondary">Начало:</span>
+                        <span className="font-medium">{new Date(formData.startTime).toLocaleString('ru-RU')}</span>
+                      </div>
+                    )}
+                    {formData.endTime && (
+                      <div className="flex justify-between text-sm">
+                        <span className="admin-text-secondary">Окончание:</span>
+                        <span className="font-medium">{new Date(formData.endTime).toLocaleString('ru-RU')}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -369,14 +342,14 @@ export default function AuctionModal({ isOpen, onClose, onSave, editLot }: Aucti
           </div>
         )}
 
-        {/* Кнопки */}
-        <div className="flex justify-end space-x-3 pt-4">
+        {/* Кнопки действий */}
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={handleCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border admin-border rounded-md hover:bg-gray-50 transition-colors"
+            className="admin-button-secondary px-4 py-2 text-sm font-medium rounded-md"
           >
-            Отменить
+            Отмена
           </button>
           <button
             type="submit"
