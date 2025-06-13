@@ -37,6 +37,8 @@
     "expo-system-ui": "~5.0.8",
     "expo-web-browser": "~14.1.6",
     "express": "^5.1.0",
+    "playwright": "^1.53.0",
+    "puppeteer": "^24.10.1",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
@@ -82,5 +84,18 @@
       "prettier --write"
     ]
   },
-  "private": true
+  "private": true,
+  "description": "![React Native](https://img.shields.io/badge/React%20Native-0.74-blue) ![Expo](https://img.shields.io/badge/Expo-51.0-black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue) ![Прогресс](https://img.shields.io/badge/Прогресс-90%25-green)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Neuropolis-ai/09062025-internat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Neuropolis-ai/09062025-internat/issues"
+  },
+  "homepage": "https://github.com/Neuropolis-ai/09062025-internat#readme"
 }

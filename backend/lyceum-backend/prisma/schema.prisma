@@ -23,6 +23,7 @@ model User {
   passwordHash    String    @map("password_hash")
   firstName       String    @map("first_name")
   lastName        String    @map("last_name")
+  middleName      String?   @map("middle_name")
   classId         String?   @map("class_id")
   cottageId       String?   @map("cottage_id")
   innl            String    @unique @map("innl") // Лицейский ИНН

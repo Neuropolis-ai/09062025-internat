@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лицей API - Тестирование</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .api-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .endpoint {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #e1e8ed;
+            border-radius: 5px;
+        }
+        .method {
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get { background-color: #28a745; }
+        .post { background-color: #007bff; }
+        .put { background-color: #ffc107; color: #000; }
+        .delete { background-color: #dc3545; }
+        .url {
+            flex: 1;
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        .test-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .test-btn:hover {
+            background-color: #138496;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; }
+        .auth-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .token-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏫 Лицей-интернат "Подмосковный"</h1>
+        <h2>Backend API - Панель тестирования</h2>
+        <p>Сервер: <span id="server-status">Проверяется...</span></p>
+        <a href="/" style="color: white; text-decoration: none;">← Назад к главной</a>
+    </div>
+
+    <div class="stats" id="stats">
+        <!-- Статистика будет загружена динамически -->
+    </div>
+
+    <div class="auth-section">
+        <h3>🔐 Аутентификация</h3>
+        <p>Для тестирования защищенных endpoints введите JWT токен:</p>
+        <input type="text" id="jwt-token" class="token-input" placeholder="Bearer токен (получите через /api/v1/auth/login)">
+        <div style="margin-top: 10px;">
+            <button onclick="loginAsAdmin()" class="test-btn">Войти как Админ</button>
+            <button onclick="loginAsStudent()" class="test-btn">Войти как Студент</button>
+        </div>
+    </div>
+
+    <div class="api-section">
+        <h3>📊 Системные endpoints</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/health</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/health')">Тест</button>
+        </div>
+        <div id="result-health" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>👥 Пользователи</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/users</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/users')">Тест</button>
+        </div>
+        <div id="result-users" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>🛒 L-shop (Товары)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/products</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/products')">Тест</button>
+        </div>
+        <div id="result-products" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>🏛️ Аукционы (защищено JWT)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/auctions</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/auctions', true)">Тест</button>
+        </div>
+        <div id="result-auctions" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>📄 Госконтракты (защищено JWT)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/contracts</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/contracts', true)">Тест</button>
+        </div>
+        <div id="result-contracts" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>💬 Нейрочат (защищено JWT)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/chat/status</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/chat/status', true)">Тест</button>
+        </div>
+        <div id="result-chat" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>📁 Файловое хранилище (защищено JWT)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/storage/status</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/storage/status', true)">Тест</button>
+        </div>
+        <div id="result-storage" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="api-section">
+        <h3>📧 Email уведомления (защищено JWT)</h3>
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <span class="url">/api/v1/email/status</span>
+            <button class="test-btn" onclick="testEndpoint('GET', '/api/v1/email/status', true)">Тест</button>
+        </div>
+        <div id="result-email" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentToken = '';
+
+        // Проверка статуса сервера при загрузке
+        window.onload = function() {
+            checkServerStatus();
+            loadStats();
+        };
+
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/v1/health');
+                const data = await response.json();
+                document.getElementById('server-status').innerHTML = 
+                    `<span style="color: #28a745;">✅ Работает (uptime: ${Math.floor(data.uptime)}s)</span>`;
+            } catch (error) {
+                document.getElementById('server-status').innerHTML = 
+                    `<span style="color: #dc3545;">❌ Недоступен</span>`;
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const [usersRes, productsRes] = await Promise.all([
+                    fetch('/api/v1/users'),
+                    fetch('/api/v1/products')
+                ]);
+                
+                const users = await usersRes.json();
+                const products = await productsRes.json();
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${users.length}</div>
+                        <div class="stat-label">Пользователей</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${products.length}</div>
+                        <div class="stat-label">Товаров</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">8+</div>
+                        <div class="stat-label">API Модулей</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">70+</div>
+                        <div class="stat-label">Endpoints</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+            }
+        }
+
+        async function loginAsAdmin() {
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@lyceum.ru',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.accessToken) {
+                    currentToken = data.accessToken;
+                    document.getElementById('jwt-token').value = currentToken;
+                    alert('✅ Успешно вошли как Администратор!');
+                } else {
+                    alert('❌ Ошибка входа: ' + (data.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка подключения: ' + error.message);
+            }
+        }
+
+        async function loginAsStudent() {
+            try {
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'student@lyceum.ru',
+                        password: 'student123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.accessToken) {
+                    currentToken = data.accessToken;
+                    document.getElementById('jwt-token').value = currentToken;
+                    alert('✅ Успешно вошли как Студент!');
+                } else {
+                    alert('❌ Ошибка входа: ' + (data.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка подключения: ' + error.message);
+            }
+        }
+
+        async function testEndpoint(method, endpoint, requiresAuth = false) {
+            const resultId = 'result-' + endpoint.split('/').pop();
+            const resultDiv = document.getElementById(resultId);
+            
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                
+                if (requiresAuth) {
+                    const token = document.getElementById('jwt-token').value || currentToken;
+                    if (!token) {
+                        throw new Error('Требуется JWT токен для этого endpoint');
+                    }
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+                
+                const response = await fetch(endpoint, {
+                    method: method,
+                    headers: headers
+                });
+                
+                const data = await response.text();
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(data);
+                } catch {
+                    parsedData = data;
+                }
+                
+                resultDiv.className = response.ok ? 'result success' : 'result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <strong>Status:</strong> ${response.status} ${response.statusText}<br>
+                    <strong>Response:</strong><br>
+                    <pre>${JSON.stringify(parsedData, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `
+                    <strong>Ошибка:</strong> ${error.message}
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

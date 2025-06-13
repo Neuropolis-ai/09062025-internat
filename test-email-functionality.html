@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест функциональности Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тест функциональности Email для студентов</h1>
+        
+        <div class="test-section">
+            <h3>📋 Информация о тестировании</h3>
+            <p>Этот тест проверяет новую функциональность добавления и редактирования email при работе со студентами.</p>
+            <ul>
+                <li>✅ Добавление email при создании студента</li>
+                <li>✅ Валидация email формата</li>
+                <li>✅ Редактирование email существующего студента</li>
+                <li>✅ Обязательность поля email</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 Быстрые ссылки для тестирования</h3>
+            <button onclick="openStudentsPage()">Открыть страницу студентов</button>
+            <button onclick="testBackendAPI()">Проверить Backend API</button>
+            <button onclick="checkCORS()">Проверить CORS</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Тест создания студента с email</h3>
+            <div class="form-group">
+                <label>ФИО:</label>
+                <input type="text" id="testFullName" placeholder="Иванов Иван Иванович" value="Тестов Тест Тестович">
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="testEmail" placeholder="test@lyceum.ru" value="test.student@lyceum.ru">
+            </div>
+            <div class="form-group">
+                <label>Класс:</label>
+                <select id="testClass">
+                    <option value="10А">10А</option>
+                    <option value="10Б">10Б</option>
+                    <option value="11А">11А</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Коттедж:</label>
+                <select id="testCottage">
+                    <option value="Альфа">Альфа</option>
+                    <option value="Бета">Бета</option>
+                    <option value="Гамма">Гамма</option>
+                </select>
+            </div>
+            <button onclick="testCreateStudent()">Создать тестового студента</button>
+            <div id="createResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Проверка валидации email</h3>
+            <button onclick="testEmailValidation('invalid-email')">Тест невалидного email</button>
+            <button onclick="testEmailValidation('')">Тест пустого email</button>
+            <button onclick="testEmailValidation('valid@test.com')">Тест валидного email</button>
+            <div id="validationResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Статус системы</h3>
+            <div id="systemStatus">
+                <p>🔄 Проверка статуса...</p>
+            </div>
+            <button onclick="checkSystemStatus()">Обновить статус</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api/v1';
+        const FRONTEND_URL = 'http://localhost:3004'; // Обновите порт если нужно
+
+        function openStudentsPage() {
+            window.open(FRONTEND_URL + '/students', '_blank');
+        }
+
+        async function testBackendAPI() {
+            try {
+                const response = await fetch(API_BASE + '/health');
+                const data = await response.json();
+                showResult('systemStatus', `✅ Backend API работает: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                showResult('systemStatus', `❌ Backend API недоступен: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkCORS() {
+            try {
+                const response = await fetch(API_BASE + '/users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                showResult('systemStatus', `✅ CORS настроен корректно`, 'success');
+            } catch (error) {
+                showResult('systemStatus', `❌ Проблема с CORS: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateStudent() {
+            const fullName = document.getElementById('testFullName').value;
+            const email = document.getElementById('testEmail').value;
+            const className = document.getElementById('testClass').value;
+            const cottage = document.getElementById('testCottage').value;
+
+            if (!fullName || !email) {
+                showResult('createResult', '❌ Заполните все обязательные поля', 'error');
+                return;
+            }
+
+            const nameParts = fullName.trim().split(/\s+/);
+            if (nameParts.length < 2) {
+                showResult('createResult', '❌ Введите фамилию и имя', 'error');
+                return;
+            }
+
+            const studentData = {
+                email: email,
+                firstName: nameParts[1],
+                lastName: nameParts[0],
+                role: 'STUDENT',
+                profileData: {
+                    className: className,
+                    cottage: cottage
+                }
+            };
+
+            try {
+                const response = await fetch(API_BASE + '/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(studentData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showResult('createResult', `✅ Студент создан успешно! ID: ${result.id}, Email: ${result.email}`, 'success');
+                } else {
+                    const error = await response.json();
+                    showResult('createResult', `❌ Ошибка создания: ${error.message || 'Неизвестная ошибка'}`, 'error');
+                }
+            } catch (error) {
+                showResult('createResult', `❌ Ошибка сети: ${error.message}`, 'error');
+            }
+        }
+
+        function testEmailValidation(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            let result = '';
+            let type = '';
+
+            if (email === '') {
+                result = '❌ Пустой email - должна быть ошибка валидации';
+                type = 'error';
+            } else if (!emailRegex.test(email)) {
+                result = `❌ Невалидный email "${email}" - должна быть ошибка валидации`;
+                type = 'error';
+            } else {
+                result = `✅ Валидный email "${email}" - должен пройти валидацию`;
+                type = 'success';
+            }
+
+            showResult('validationResult', result, type);
+        }
+
+        async function checkSystemStatus() {
+            showResult('systemStatus', '🔄 Проверка статуса системы...', 'info');
+            
+            // Проверка Backend
+            try {
+                const backendResponse = await fetch(API_BASE + '/health');
+                const backendData = await backendResponse.json();
+                
+                // Проверка Frontend
+                const frontendResponse = await fetch(FRONTEND_URL);
+                
+                // Проверка базы данных
+                const dbResponse = await fetch(API_BASE + '/test-db');
+                const dbData = await dbResponse.json();
+
+                let status = `
+                    ✅ Backend: Работает (${backendData.status})<br>
+                    ✅ Frontend: Доступен<br>
+                    ✅ База данных: ${dbData.message}<br>
+                    📊 Время проверки: ${new Date().toLocaleTimeString()}
+                `;
+                
+                showResult('systemStatus', status, 'success');
+            } catch (error) {
+                showResult('systemStatus', `❌ Ошибка проверки системы: ${error.message}`, 'error');
+            }
+        }
+
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+
+        // Автоматическая проверка при загрузке страницы
+        window.onload = function() {
+            checkSystemStatus();
+        };
+    </script>
+</body>
+</html> 

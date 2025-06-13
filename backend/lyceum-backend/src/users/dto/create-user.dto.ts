@@ -19,6 +19,11 @@ export class CreateUserDto {
   @IsString()
   lastName: string;
 
+  @ApiPropertyOptional({ description: 'Отчество', example: 'Иванович' })
+  @IsOptional()
+  @IsString()
+  middleName?: string;
+
   @ApiPropertyOptional({ description: 'ID класса' })
   @IsOptional()
   @IsString()

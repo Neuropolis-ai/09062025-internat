@@ -9,6 +9,7 @@ import { AuctionsModule } from './auctions/auctions.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { ChatModule } from './chat/chat.module';
 import { StorageModule } from './storage/storage.module';
+import { EmailModule } from './email/email.module';
 import { configValidation } from './config/config.validation';
 
 @Module({
@@ -24,6 +25,7 @@ import { configValidation } from './config/config.validation';
     ContractsModule,
     ChatModule,
     StorageModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

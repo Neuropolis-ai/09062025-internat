@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{subject}}</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white; 
+            padding: 30px 20px; 
+            text-align: center; 
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .content { 
+            padding: 40px 30px; 
+            background-color: white;
+            line-height: 1.6;
+        }
+        .welcome-message {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .user-info h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .button { 
+            display: inline-block; 
+            padding: 14px 28px; 
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white; 
+            text-decoration: none; 
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-1px);
+        }
+        .footer { 
+            padding: 30px; 
+            text-align: center; 
+            color: #7f8c8d; 
+            background-color: #ecf0f1;
+            font-size: 14px;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">🏫</div>
+            <h1>Лицей-интернат "Подмосковный"</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Добро пожаловать в нашу семью!</p>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-message">
+                <h2 style="color: #2c3e50; margin-top: 0;">Добро пожаловать, {{firstName}} {{lastName}}! 🎉</h2>
+                <p>Мы рады приветствовать вас в лицее-интернате "Подмосковный". Ваш аккаунт успешно создан и готов к использованию.</p>
+            </div>
+
+            <div class="user-info">
+                <h3>Ваши данные:</h3>
+                <p><strong>ИННЛ:</strong> {{innl}}</p>
+                <p><strong>Класс:</strong> {{className}}</p>
+                <p><strong>Коттедж:</strong> {{cottageName}}</p>
+            </div>
+
+            <p>Теперь вы можете:</p>
+            <ul style="padding-left: 20px; color: #2c3e50;">
+                <li>🛒 Совершать покупки в L-shop</li>
+                <li>🏆 Участвовать в аукционах</li>
+                <li>📄 Подавать заявки на госконтракты</li>
+                <li>💰 Управлять своим балансом L-Coin</li>
+                <li>🤖 Общаться с нейросетью-помощником</li>
+            </ul>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{loginUrl}}" class="button">Войти в систему</a>
+            </div>
+
+            <div style="background-color: #e8f5e8; padding: 15px; border-radius: 6px; border-left: 4px solid #27ae60;">
+                <p style="margin: 0; color: #27ae60;"><strong>💡 Совет:</strong> Сохраните это письмо с вашими данными для входа.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>С уважением,<br><strong>Администрация лицея-интерната "Подмосковный"</strong></p>
+            <p style="margin-top: 20px; font-size: 12px; opacity: 0.7;">
+                Это автоматическое сообщение. Пожалуйста, не отвечайте на него.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

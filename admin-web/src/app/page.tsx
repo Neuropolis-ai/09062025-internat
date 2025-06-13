@@ -7,20 +7,14 @@ export default function AdminPanel() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Валидация полей
-    if (!email || !password || !confirmPassword) {
+    if (!email || !password) {
       alert('Пожалуйста, заполните все поля');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      alert('Пароли не совпадают');
       return;
     }
     
@@ -29,6 +23,12 @@ export default function AdminPanel() {
     } else {
       alert('Неверные данные для входа');
     }
+  };
+
+  const handleDemoLogin = () => {
+    setEmail('admin@lyceum.ru');
+    setPassword('admin123');
+    setIsLoggedIn(true);
   };
 
   if (!isLoggedIn) {
@@ -85,24 +85,6 @@ export default function AdminPanel() {
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Повторно пароль
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="admin-input appearance-none block w-full placeholder-gray-400 focus:outline-none sm:text-sm"
-                    placeholder="Повторите пароль"
-                  />
-                </div>
-              </div>
-
-              <div>
                 <button
                   type="submit"
                   className="admin-button-primary w-full flex justify-center py-2 px-4 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2"
@@ -115,11 +97,33 @@ export default function AdminPanel() {
               </div>
             </form>
             
+            {/* Кнопка демо-входа */}
+            <div className="mt-4">
+              <button
+                onClick={handleDemoLogin}
+                className="w-full flex justify-center py-2 px-4 rounded-md shadow-sm text-sm font-medium border-2 transition-colors"
+                style={{ 
+                  borderColor: 'var(--primary-burgundy)',
+                  color: 'var(--primary-burgundy)',
+                  backgroundColor: 'transparent'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--primary-burgundy)';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--primary-burgundy)';
+                }}
+              >
+                🚀 Демо-вход (для тестирования)
+              </button>
+            </div>
+            
             <div className="mt-4 text-center text-sm admin-text-secondary">
               <p>Тестовые данные:</p>
               <p style={{ color: 'var(--primary-burgundy)' }}>Email: admin@lyceum.ru</p>
               <p style={{ color: 'var(--primary-burgundy)' }}>Пароль: admin123</p>
-              <p style={{ color: 'var(--primary-burgundy)' }}>Повторно пароль: admin123</p>
             </div>
           </div>
         </div>

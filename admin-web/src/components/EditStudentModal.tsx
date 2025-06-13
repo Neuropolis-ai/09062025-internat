@@ -1,27 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from './ui/Modal';
+import { useAdmin } from '../contexts/AdminContext';
 
-interface AddStudentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (studentData: StudentFormData) => void;
-}
-
-interface StudentFormData {
+interface User {
+  id: string;
+  email: string;
   firstName: string;
   lastName: string;
-  middleName: string;
-  email: string;
-  class: string;
-  cottage: string;
-  phone: string;
-  tokensAccount: number;
-  tokensCredit: number;
-  membership: string;
-  positions: string[];
-  achievements: string[];
+  middleName?: string;
+  role: string;
+  profileData?: {
+    className?: string;
+    cottage?: string;
+    tokens?: number;
+    tokensAccount?: number;
+    tokensCredit?: number;
+    phone?: string;
+    membership?: string;
+    positions?: string[];
+    achievements?: string[];
+  };
+  isActive: boolean;
+}
+
+interface EditStudentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  student: User | null;
 }
 
 const cottages = ['Альфа', 'Бета', 'Гамма', 'Дельта', 'Эпсилон'];
@@ -30,125 +37,115 @@ const memberships = ['Ученик', 'Староста', 'Заместитель
 const availablePositions = ['Президент', 'Вице-президент', 'Министр образования', 'Министр культуры', 'Министр спорта'];
 const availableAchievements = ['Отличник', 'Спортсмен', 'Активист', 'Творческая личность', 'Лидер'];
 
-export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentModalProps) {
-  const [formData, setFormData] = useState<StudentFormData>({
-    firstName: '',
-    lastName: '',
-    middleName: '',
-    email: '',
-    class: '',
-    cottage: '',
-    phone: '',
-    tokensAccount: 0,
-    tokensCredit: 0,
-    membership: '',
-    positions: [],
-    achievements: []
-  });
-
+export default function EditStudentModal({ isOpen, onClose, student }: EditStudentModalProps) {
+  const [formData, setFormData] = useState<Partial<User>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { updateUser, loading } = useAdmin();
+  
+  useEffect(() => {
+    if (student) {
+      setFormData({
+        ...student,
+        profileData: {
+          className: student.profileData?.className || '',
+          cottage: student.profileData?.cottage || '',
+          tokens: student.profileData?.tokens || 0,
+          tokensAccount: student.profileData?.tokensAccount || 0,
+          tokensCredit: student.profileData?.tokensCredit || 0,
+          phone: student.profileData?.phone || '',
+          membership: student.profileData?.membership || '',
+          positions: student.profileData?.positions || [],
+          achievements: student.profileData?.achievements || [],
+          ...student.profileData
+        }
+      });
+    }
+  }, [student]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
+    if (!formData.firstName?.trim()) {
       newErrors.firstName = 'Имя обязательно';
     }
-    if (!formData.lastName.trim()) {
+    if (!formData.lastName?.trim()) {
       newErrors.lastName = 'Фамилия обязательна';
     }
-    if (!formData.middleName.trim()) {
+    if (!formData.middleName?.trim()) {
       newErrors.middleName = 'Отчество обязательно';
     }
-    if (!formData.email.trim()) {
+    if (!formData.email?.trim()) {
       newErrors.email = 'Email обязателен';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Введите корректный email';
-    }
-    if (!formData.class) {
-      newErrors.class = 'Выберите класс';
-    }
-    if (!formData.cottage) {
-      newErrors.cottage = 'Выберите коттедж';
-    }
-    if (formData.tokensAccount < 0) {
-      newErrors.tokensAccount = 'Токены не могут быть отрицательными';
-    }
-    if (formData.tokensCredit < 0) {
-      newErrors.tokensCredit = 'Токены не могут быть отрицательными';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      onSave(formData);
-      // Сброс формы
-      setFormData({
-        firstName: '',
-        lastName: '',
-        middleName: '',
-        email: '',
-        class: '',
-        cottage: '',
-        phone: '',
-        tokensAccount: 0,
-        tokensCredit: 0,
-        membership: '',
-        positions: [],
-        achievements: []
-      });
-      setErrors({});
+    if (!student) return;
+
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      await updateUser(student.id, formData);
       onClose();
+    } catch (error) {
+      console.error("Failed to update student", error);
+      // Можно добавить обработку ошибок, например, показать уведомление
     }
   };
 
-  const handleCancel = () => {
-    // Сброс формы при отмене
-    setFormData({
-      firstName: '',
-      lastName: '',
-      middleName: '',
-      email: '',
-      class: '',
-      cottage: '',
-      phone: '',
-      tokensAccount: 0,
-      tokensCredit: 0,
-      membership: '',
-      positions: [],
-      achievements: []
-    });
-    setErrors({});
-    onClose();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleProfileDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      profileData: {
+        ...prev.profileData,
+        [name]: name === 'tokensAccount' || name === 'tokensCredit' ? parseInt(value) || 0 : value
+      }
+    }));
   };
 
   const handlePositionToggle = (position: string) => {
     setFormData(prev => ({
       ...prev,
-      positions: prev.positions.includes(position)
-        ? prev.positions.filter(p => p !== position)
-        : [...prev.positions, position]
+      profileData: {
+        ...prev.profileData,
+        positions: prev.profileData?.positions?.includes(position)
+          ? prev.profileData.positions.filter(p => p !== position)
+          : [...(prev.profileData?.positions || []), position]
+      }
     }));
   };
 
   const handleAchievementToggle = (achievement: string) => {
     setFormData(prev => ({
       ...prev,
-      achievements: prev.achievements.includes(achievement)
-        ? prev.achievements.filter(a => a !== achievement)
-        : [...prev.achievements, achievement]
+      profileData: {
+        ...prev.profileData,
+        achievements: prev.profileData?.achievements?.includes(achievement)
+          ? prev.profileData.achievements.filter(a => a !== achievement)
+          : [...(prev.profileData?.achievements || []), achievement]
+      }
     }));
   };
 
+  if (!student) return null;
+
   return (
-    <Modal isOpen={isOpen} onClose={handleCancel} title="Добавить ученика" size="lg">
+    <Modal isOpen={isOpen} onClose={onClose} title="Редактировать данные ученика" size="lg">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Основная информация */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -156,10 +153,10 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="text"
-              id="firstName"
+              name="firstName"
+              value={formData.firstName || ''}
+              onChange={handleChange}
               className={`admin-input w-full ${errors.firstName ? 'border-red-500' : ''}`}
-              value={formData.firstName}
-              onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
               placeholder="Введите имя ученика"
             />
             {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
@@ -171,10 +168,10 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="text"
-              id="lastName"
+              name="lastName"
+              value={formData.lastName || ''}
+              onChange={handleChange}
               className={`admin-input w-full ${errors.lastName ? 'border-red-500' : ''}`}
-              value={formData.lastName}
-              onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
               placeholder="Введите фамилию ученика"
             />
             {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
@@ -186,10 +183,10 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="text"
-              id="middleName"
+              name="middleName"
+              value={formData.middleName || ''}
+              onChange={handleChange}
               className={`admin-input w-full ${errors.middleName ? 'border-red-500' : ''}`}
-              value={formData.middleName}
-              onChange={(e) => setFormData(prev => ({ ...prev, middleName: e.target.value }))}
               placeholder="Введите отчество ученика"
             />
             {errors.middleName && <p className="text-red-500 text-xs mt-1">{errors.middleName}</p>}
@@ -197,55 +194,53 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              Email *
             </label>
             <input
               type="email"
-              id="email"
+              name="email"
+              value={formData.email || ''}
+              onChange={handleChange}
               className={`admin-input w-full ${errors.email ? 'border-red-500' : ''}`}
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               placeholder="Введите email ученика"
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <label htmlFor="class" className="block text-sm font-medium text-gray-700 mb-1">
-              Класс *
+            <label htmlFor="className" className="block text-sm font-medium text-gray-700 mb-1">
+              Класс
             </label>
             <select
-              id="class"
-              className={`admin-input w-full ${errors.class ? 'border-red-500' : ''}`}
-              value={formData.class}
-              onChange={(e) => setFormData(prev => ({ ...prev, class: e.target.value }))}
+              name="className"
+              value={formData.profileData?.className || ''}
+              onChange={handleProfileDataChange}
+              className="admin-input w-full"
             >
               <option value="">Выберите класс</option>
               {classes.map(cls => (
                 <option key={cls} value={cls}>{cls}</option>
               ))}
             </select>
-            {errors.class && <p className="text-red-500 text-xs mt-1">{errors.class}</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="cottage" className="block text-sm font-medium text-gray-700 mb-1">
-              Коттедж *
+              Коттедж
             </label>
             <select
-              id="cottage"
-              className={`admin-input w-full ${errors.cottage ? 'border-red-500' : ''}`}
-              value={formData.cottage}
-              onChange={(e) => setFormData(prev => ({ ...prev, cottage: e.target.value }))}
+              name="cottage"
+              value={formData.profileData?.cottage || ''}
+              onChange={handleProfileDataChange}
+              className="admin-input w-full"
             >
               <option value="">Выберите коттедж</option>
               {cottages.map(cottage => (
                 <option key={cottage} value={cottage}>{cottage}</option>
               ))}
             </select>
-            {errors.cottage && <p className="text-red-500 text-xs mt-1">{errors.cottage}</p>}
           </div>
 
           <div>
@@ -253,10 +248,10 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
               Принадлежность
             </label>
             <select
-              id="membership"
+              name="membership"
+              value={formData.profileData?.membership || ''}
+              onChange={handleProfileDataChange}
               className="admin-input w-full"
-              value={formData.membership}
-              onChange={(e) => setFormData(prev => ({ ...prev, membership: e.target.value }))}
             >
               <option value="">Выберите принадлежность</option>
               {memberships.map(membership => (
@@ -266,7 +261,6 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
           </div>
         </div>
 
-        {/* Контактная информация */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
@@ -274,16 +268,15 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="tel"
-              id="phone"
+              name="phone"
+              value={formData.profileData?.phone || ''}
+              onChange={handleProfileDataChange}
               className="admin-input w-full"
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
               placeholder="Введите номер телефона"
             />
           </div>
         </div>
 
-        {/* Токены */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="tokensAccount" className="block text-sm font-medium text-gray-700 mb-1">
@@ -291,14 +284,13 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="number"
-              id="tokensAccount"
+              name="tokensAccount"
               min="0"
-              className={`admin-input w-full ${errors.tokensAccount ? 'border-red-500' : ''}`}
-              value={formData.tokensAccount}
-              onChange={(e) => setFormData(prev => ({ ...prev, tokensAccount: parseInt(e.target.value) || 0 }))}
+              value={formData.profileData?.tokensAccount || 0}
+              onChange={handleProfileDataChange}
+              className="admin-input w-full"
               placeholder="0"
             />
-            {errors.tokensAccount && <p className="text-red-500 text-xs mt-1">{errors.tokensAccount}</p>}
           </div>
 
           <div>
@@ -307,18 +299,16 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             </label>
             <input
               type="number"
-              id="tokensCredit"
+              name="tokensCredit"
               min="0"
-              className={`admin-input w-full ${errors.tokensCredit ? 'border-red-500' : ''}`}
-              value={formData.tokensCredit}
-              onChange={(e) => setFormData(prev => ({ ...prev, tokensCredit: parseInt(e.target.value) || 0 }))}
+              value={formData.profileData?.tokensCredit || 0}
+              onChange={handleProfileDataChange}
+              className="admin-input w-full"
               placeholder="0"
             />
-            {errors.tokensCredit && <p className="text-red-500 text-xs mt-1">{errors.tokensCredit}</p>}
           </div>
         </div>
 
-        {/* Должности */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Должности
@@ -328,7 +318,7 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
               <label key={position} className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={formData.positions.includes(position)}
+                  checked={formData.profileData?.positions?.includes(position) || false}
                   onChange={() => handlePositionToggle(position)}
                   className="mr-2"
                 />
@@ -338,7 +328,6 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
           </div>
         </div>
 
-        {/* Достижения */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Достижения
@@ -348,7 +337,7 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
               <label key={achievement} className="flex items-center">
                 <input
                   type="checkbox"
-                  checked={formData.achievements.includes(achievement)}
+                  checked={formData.profileData?.achievements?.includes(achievement) || false}
                   onChange={() => handleAchievementToggle(achievement)}
                   className="mr-2"
                 />
@@ -358,11 +347,10 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
           </div>
         </div>
 
-        {/* Кнопки */}
         <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
-            onClick={handleCancel}
+            onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border admin-border rounded-md hover:bg-gray-50 transition-colors"
           >
             Отменить
@@ -371,8 +359,9 @@ export default function AddStudentModal({ isOpen, onClose, onSave }: AddStudentM
             type="submit"
             className="admin-button-primary px-4 py-2 text-sm font-medium rounded-md"
             style={{ backgroundColor: 'var(--primary-burgundy)' }}
+            disabled={loading}
           >
-            Сохранить
+            {loading ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
       </form>

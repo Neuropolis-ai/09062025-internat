@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лицей API - Главная</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+        .status-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .endpoints-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .endpoint-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        .endpoint-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .endpoint-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .endpoint-desc {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            background: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #495057;
+        }
+        .auth-badge {
+            display: inline-block;
+            background: #ffc107;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .public-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .info-section {
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        .info-title {
+            color: #004085;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏫 Лицей-интернат "Подмосковный"</h1>
+            <p>Backend API для мобильного приложения и админ-панели</p>
+        </div>
+
+        <div class="status-card" id="status-card">
+            <h3>📊 Статус сервера</h3>
+            <p id="server-status">Проверяется...</p>
+        </div>
+
+        <h2>🔗 Доступные API Endpoints</h2>
+        
+        <div class="endpoints-grid">
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    📊 Системные
+                    <span class="public-badge">PUBLIC</span>
+                </div>
+                <div class="endpoint-desc">Проверка состояния сервера и базы данных</div>
+                <div class="endpoint-url">GET /api/v1/health</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    🔐 Аутентификация
+                    <span class="public-badge">PUBLIC</span>
+                </div>
+                <div class="endpoint-desc">Вход, регистрация, обновление токенов</div>
+                <div class="endpoint-url">POST /api/v1/auth/login</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    👥 Пользователи
+                    <span class="public-badge">PUBLIC</span>
+                </div>
+                <div class="endpoint-desc">Управление пользователями, профили, классы</div>
+                <div class="endpoint-url">GET /api/v1/users</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    🛒 L-shop
+                    <span class="public-badge">PUBLIC</span>
+                </div>
+                <div class="endpoint-desc">Товары, категории, покупки</div>
+                <div class="endpoint-url">GET /api/v1/products</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    🏛️ Аукционы
+                    <span class="auth-badge">JWT</span>
+                </div>
+                <div class="endpoint-desc">Создание лотов, ставки, real-time обновления</div>
+                <div class="endpoint-url">GET /api/v1/auctions</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    📄 Госконтракты
+                    <span class="auth-badge">JWT</span>
+                </div>
+                <div class="endpoint-desc">Контракты, заявки, управление</div>
+                <div class="endpoint-url">GET /api/v1/contracts</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    💬 Нейрочат
+                    <span class="auth-badge">JWT</span>
+                </div>
+                <div class="endpoint-desc">ChatGPT интеграция для помощи студентам</div>
+                <div class="endpoint-url">GET /api/v1/chat/status</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    📁 Файловое хранилище
+                    <span class="auth-badge">JWT</span>
+                </div>
+                <div class="endpoint-desc">Загрузка файлов, Timeweb S3 интеграция</div>
+                <div class="endpoint-url">GET /api/v1/storage/status</div>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="endpoint-title">
+                    📧 Email уведомления
+                    <span class="auth-badge">JWT</span>
+                </div>
+                <div class="endpoint-desc">Отправка email, шаблоны, настройки</div>
+                <div class="endpoint-url">GET /api/v1/email/status</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="api-test.html" class="btn btn-primary">🧪 Тестировать API</a>
+            <a href="/api/v1/health" class="btn btn-success" target="_blank">📊 Health Check</a>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">ℹ️ Информация для разработчиков</div>
+            <p><strong>Base URL:</strong> http://localhost:3000/api/v1/</p>
+            <p><strong>Аутентификация:</strong> JWT Bearer токены</p>
+            <p><strong>Тестовые аккаунты:</strong></p>
+            <ul>
+                <li><strong>Админ:</strong> admin@lyceum.ru / admin123</li>
+                <li><strong>Студент:</strong> student@lyceum.ru / student123</li>
+            </ul>
+            <p><strong>WebSocket:</strong> ws://localhost:3000 (для real-time аукционов)</p>
+            <p><strong>Документация:</strong> <a href="/api/docs" target="_blank">Swagger UI</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Проверка статуса сервера
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/v1/health');
+                const data = await response.json();
+                
+                document.getElementById('server-status').innerHTML = `
+                    ✅ <strong>Сервер работает</strong><br>
+                    🕐 Uptime: ${Math.floor(data.uptime)} секунд<br>
+                    🗄️ База данных: ${data.database}<br>
+                    🌍 Окружение: ${data.environment}
+                `;
+                document.getElementById('status-card').style.background = 
+                    'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            } catch (error) {
+                document.getElementById('server-status').innerHTML = `
+                    ❌ <strong>Сервер недоступен</strong><br>
+                    Ошибка: ${error.message}
+                `;
+                document.getElementById('status-card').style.background = 
+                    'linear-gradient(135deg, #dc3545 0%, #e74c3c 100%)';
+            }
+        }
+
+        // Проверяем статус при загрузке страницы
+        window.onload = checkServerStatus;
+    </script>
+</body>
+</html> 
