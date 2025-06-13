@@ -6,6 +6,7 @@ import { PrismaService } from './common/prisma.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
+import { TransactionsModule } from './transactions/transactions.module';
 import { AuctionsModule } from './auctions/auctions.module';
 import { ContractsModule } from './contracts/contracts.module';
 import { ChatModule } from './chat/chat.module';
@@ -22,6 +23,7 @@ import configuration from './common/config/configuration';
     UsersModule,
     AuthModule,
     ProductsModule,
+    TransactionsModule,
     AuctionsModule,
     ContractsModule,
     ChatModule,
